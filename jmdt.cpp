@@ -28,10 +28,12 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 	switch (params->earth) {
 	case 1:
 	case 2:
-		params->gravity_object->V(x[0], x[1], x[2], out[3], out[4], out[5]);
+		params->gravity_object->V(x[0], x[1], x[2],
+					  out[3], out[4], out[5]);
 	case 0:
 	default:
-		double factor = -EARTH_MU/pow(x[0]*x[0] + x[1]*x[1] + x[2]*x[2], 1.5);
+		double factor = -EARTH_MU/pow(x[0]*x[0] +
+					x[1]*x[1] + x[2]*x[2], 1.5);
 		out[3] = factor * x[0];
 		out[4] = factor * x[1];
 		out[5] = factor * x[2];
@@ -41,7 +43,8 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 }
 
 double get_energy(StateVector& x) {
-       return -EARTH_MU/pow(x[0]*x[0]+x[1]*x[1]+x[2]*x[2],0.5) + 0.5*(x[3]*x[3]+x[4]*x[4]+x[5]*x[5]);
+       return -EARTH_MU/pow(x[0]*x[0]+x[1]*x[1]+x[2]*x[2],0.5) +
+		0.5*(x[3]*x[3]+x[4]*x[4]+x[5]*x[5]);
 }
 
 int main () {
@@ -58,22 +61,25 @@ int main () {
 	StateVector x0;
 	x0 << x, y, z, vx, vy, vz;
 
-	/* I'm a complete fucking moron. So at first I was like, oh, I want to
-	 * communicate with Python! I have the power of Unix, I'll use pipes and
-	 * a subprocess! Right? Well as it turns out cout is really slow - it
-	 * was making everything a few times slower than without printing. Which
-	 * was sad. So I tried to instead compile this as a library, and run it
-	 * from Python with ctypes, and it was working fine, but for some reason
-	 * it was still really slow. My suspicion is that there couldn't be as many
-	 * optimizations because of position independent code or something like
-	 * that. So instead I shared memory between a Python array and C++ with
-	 * mmap, which I had never used before, and after some pain, achieve
-	 * really fast IPC. Why, you might ask?
+	/* Well, that was quite stupid. So at first I was like, oh, I want to
+	 * communicate with Python! I have the power of Unix, I'll use pipes
+	 * and a subprocess! Right? Well as it turns out cout is really slow -
+	 * it was making everything a few times slower than without printing.
+	 * Which was sad. So I tried to instead compile this as a library, and
+	 * run it from Python with ctypes, and it was working fine, but for
+	 * some reason it was still really slow. My suspicion is that there
+	 * couldn't be as many optimizations because of position independent 
+	 * code or something like that. So instead I shared memory between a 
+	 * Python array and C++ with mmap, which I had never used before, and
+	 * after some pain, achieve really fast IPC. Why, you might ask?
 	 * 
 	 * To get a few milliseconds of performance. That's why. Argh! */
 	FILE* fmap = fopen("output.mmap", "r+");
 	cout << 8*output_size*ceil(tf/dt/report_steps) << endl;
-	double* output = (double*) mmap(0, 8*output_size*ceil(tf/dt/report_steps), PROT_WRITE, MAP_SHARED, fileno(fmap), 0);
+	double* output = (double*) mmap(0,
+					8*output_size*ceil(tf/dt/report_steps),
+					PROT_WRITE, MAP_SHARED,
+					fileno(fmap), 0);
 
 	IntegratorParams params;
 	params.atmosphere = atmosphere;
@@ -109,10 +115,9 @@ int main () {
 
 	cerr << "Time elapsed: ";
 	double elapsed = (clock()-start)/((double) CLOCKS_PER_SEC)*1000;
-	cerr << elapsed << " ms (" << integrator.t/(elapsed/1000.)/86400. << " days per second)" << endl;
+	cerr << elapsed << " ms (" << integrator.t/(elapsed/1000.)/86400.
+			<< " days per second)" << endl;
 	cerr << "Number of steps: " << steps << endl;
-	cerr << "Error: ";
-	cerr << (get_energy(x0)-get_energy(integrator.x))/get_energy(x0)*100.0 << " %" << endl;
 
 
 }

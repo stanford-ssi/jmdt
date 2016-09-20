@@ -35,11 +35,13 @@ def run_simulation(# Time step, in seconds.
                    # Final time (difference), in seconds.
                    tf = 86400,
                    ):
-    process = Popen(['./jmdt'], bufsize=-1, stdout=PIPE, stderr=PIPE, stdin=PIPE)
+    process = Popen(['./jmdt'], bufsize=-1,
+                        stdout=PIPE, stderr=PIPE, stdin=PIPE)
     
     output_size = 7
     N = math.ceil(tf/dt/report_steps)
-    out = np.memmap('output.mmap', dtype=np.double, mode='w+', shape=output_size*N)
+    out = np.memmap('output.mmap', dtype=np.double,
+                        mode='w+', shape=output_size*N)
     inp = [dt, report_steps, atmosphere, earth]
     inp.extend(state)
     inp.extend([t0, tf, output_size])
