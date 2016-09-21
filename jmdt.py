@@ -52,7 +52,7 @@ def run_simulation(# Time step, in seconds.
                    power = 1,
 
                    # Solar panel model file
-                   solar = "romeo.solar",
+                   solar = "ssisat-1/romeo.solar",
                    ):
     t0 = time.time()
     process = Popen(['./jmdt'], bufsize=-1,
