@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from subprocess import Popen, PIPE
 
-N = 12
+N = 100
 
 theta = np.linspace(0, np.pi, N)
 phi = np.linspace(0, 2*np.pi, N)
@@ -31,8 +31,8 @@ for x in data:
 	z.extend(out)
 	print "extending", len(out)
 
-z[0] = 42
-z[2] = 42
+#z[0] = 42
+#z[2] = 42
 
 satname = sys.argv[1].split('.')[0]
 

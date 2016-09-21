@@ -140,10 +140,6 @@ int main () {
 	params.power = power;
 	if (power == 1) {
 		params.solar_data = new SolarData(solar_file);
-		cout << params.solar_data->get_area(0, 0) << endl;
-		cout << params.solar_data->get_area(0.27, 0) << endl;
-		cout << params.solar_data->get_area(0.29, 0) << endl;
-		cout << params.solar_data->get_area(0.79, 0) << endl;
 	}
 
 	t0 = t0*1000.0; // Use Julian ... seconds?
