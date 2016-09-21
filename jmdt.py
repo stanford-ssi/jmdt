@@ -1,24 +1,27 @@
 import math
 import os
+import time
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 from subprocess import Popen, PIPE
-from tempfile import NamedTemporaryFile
+
+import atexit
+atexit.register(lambda: os.remove('output.mmap'))
 
 def run_simulation(# Time step, in seconds.
                    dt = 10,
                    
                    # Send data over to Python over this many integration steps,
                    # i.e. every report_steps*dt seconds.
-                   report_steps = 10,
+                   report_steps = 1,
                    
                    # Atmospheric model. 0: None, 1: US1976, 2: NRLMSISE-00
                    # 0 is fastest, 1 is pretty fast (interpolated values),
                    # 2 is much slower but more realistic (changes with time
                    # and space weather).
-                   atmosphere = 0,
+                   atmosphere = 1,
                    
                    # Earth gravity model. 0: Point mass, 1: WGS84, 2: EGM96
                    # Point mass is fastest, WGS84 has zonal coefficients up to
@@ -34,29 +37,50 @@ def run_simulation(# Time step, in seconds.
 
                    # Final time (difference), in seconds.
                    tf = 86400,
+                   
+                   # Coefficient of drag.
+                   Cd = 2,
+                   
+                   # Area
+                   A = 0.1*(0.15+0.1+0.15),
+                   
+                   # Mass
+                   mass = 1.0*1.5,
+                   
+                   # Power simulation parameters. 0: No power simulation,
+                   # 1: simulate power (solar panels).
+                   power = 0
                    ):
+    t0 = time.time()
     process = Popen(['./jmdt'], bufsize=-1,
                         stdout=PIPE, stderr=PIPE, stdin=PIPE)
     
     output_size = 7
-    N = math.ceil(tf/dt/report_steps)
+    N = math.floor(tf/dt)/report_steps
     out = np.memmap('output.mmap', dtype=np.double,
                         mode='w+', shape=output_size*N)
     inp = [dt, report_steps, atmosphere, earth]
     inp.extend(state)
-    inp.extend([t0, tf, output_size])
+    inp.extend([t0, tf, output_size, Cd, A, mass])
     #print '\n'.join(map(str, inp))
     a,b=process.communicate(input='\n'.join(map(str, inp)))
+    
+    print a,b
+    
     out.shape = (N, output_size)
+    end = np.zeros(shape=(1,7))
+    while (out[-1] == end).all():
+        out = out[:-1]
     
-    ts = out[:, 0]
-    xs = out[:, 1]
-    plt.plot(ts, xs)
-    plt.show()
-    print ts
-    print repr(a),repr(b)
-    
-    os.remove('output.mmap')
+    return out
 
+out = run_simulation()
 
-run_simulation()
+ts = out[:, 0]
+xs = out[:, 1]
+ys = out[:, 2]
+zs = out[:, 3]
+
+plt.plot(ts, np.sqrt(xs*xs+ys*ys+zs*zs)/1000.0-6371.009)
+plt.plot(ts, 0*ts)
+plt.show()

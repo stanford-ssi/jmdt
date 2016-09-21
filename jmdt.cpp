@@ -5,6 +5,7 @@
 #include <fcntl.h>
 
 #include <Eigen/Dense>
+#include <Eigen/Geometry>
 #include <GeographicLib/GravityModel.hpp>
 #include "nrlmsise-00/nrlmsise-00.h"
 
@@ -22,9 +23,16 @@ typedef Matrix<double, 6, 1> StateVector;
 
 StateVector func(StateVector x, double t, IntegratorParams* params) {
 	StateVector out;
+
+	/* Velocity. */
 	out[0] = x[3];
 	out[1] = x[4];
 	out[2] = x[5];
+
+	Vector3d rvec(x[0], x[1], x[2]);
+	double rmag = rvec.norm();
+	
+	/* Gravity. */
 	switch (params->earth) {
 	case 1:
 	case 2:
@@ -32,11 +40,42 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 					  out[3], out[4], out[5]);
 	case 0:
 	default:
-		double factor = -EARTH_MU/pow(x[0]*x[0] +
-					x[1]*x[1] + x[2]*x[2], 1.5);
+		double factor = -EARTH_MU/pow(rmag, 3);
 		out[3] = factor * x[0];
 		out[4] = factor * x[1];
 		out[5] = factor * x[2];
+	}
+
+	/* Drag. */
+	if (params->atmosphere != 0) {
+		double rho;
+		
+		/* Get geopotential height. Not implemented properly yet. */
+		double h;
+		switch (params->earth) {
+		case 1: // GeographicLib would go here
+		case 2: // GeographicLib would go here
+		case 0:
+		default:
+			h = rmag - EARTH_RADIUS;
+		}
+		
+		Vector3d vec(x[3], x[4], x[5]);
+		Vector3d vrel = vec - EARTH_OMEGA.cross(rvec);
+
+		switch (params->atmosphere) {
+		case 1:
+		default:
+			rho = density_us1976(h);
+		}
+		
+		Vector3d drag = -0.5*params->Cd*params->A*rho*
+					vrel.squaredNorm()*vrel.normalized();
+		drag = drag/params->mass;
+		
+		out[3] += drag[0];
+		out[4] += drag[1];
+		out[5] += drag[2];
 	}
 
 	return out;
@@ -54,9 +93,11 @@ int main () {
 	int report_steps, atmosphere, earth;
 	double x, y, z, vx, vy, vz, t0, tf;
 	int output_size;
+	double Cd, A, mass;
 
 	cin >> dt >> report_steps >> atmosphere >> earth >>
-		x >> y >> z >> vx >> vy >> vz >> t0 >> tf >> output_size;
+		x >> y >> z >> vx >> vy >> vz >> t0 >> tf >> output_size >>
+		Cd >> A >> mass;
 
 	StateVector x0;
 	x0 << x, y, z, vx, vy, vz;
@@ -89,7 +130,9 @@ int main () {
 	} else if (earth == 2) {
 		params.gravity_object = new GravityModel("egm96");
 	}
-
+	params.Cd = Cd;
+	params.A = A;
+	params.mass = mass;
 
 	t0 = t0*1000.0; // Use Julian ... seconds?
 
@@ -97,7 +140,7 @@ int main () {
 	ABMIntegrator integrator(func, x0, dt, &params);
 
 	int steps = 0;
-	while (integrator.t < 86400) {
+	while (integrator.t < tf) {
 		integrator.step();
 
 		if (steps % report_steps == 0) {
