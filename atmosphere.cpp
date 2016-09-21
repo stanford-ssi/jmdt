@@ -10,8 +10,8 @@ double density_us1976(double h) {
 	int a = h;
 	int b = a+1;
 
-	int da = exp(us1976[a]);
-	int db = exp(us1976[b]);
+	double da = exp(us1976[a]);
+	double db = exp(us1976[b]);
 
 	return da + (db-da)*(h-a);
 }
