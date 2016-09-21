@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <string>
 
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
@@ -12,6 +13,7 @@
 #include "constants.h"
 #include "integrator.h"
 #include "atmosphere.h"
+#include "solar.h"
 
 using namespace std;
 using namespace Eigen;
@@ -94,10 +96,12 @@ int main () {
 	double x, y, z, vx, vy, vz, t0, tf;
 	int output_size;
 	double Cd, A, mass;
+	int power;
+	string solar_file;
 
 	cin >> dt >> report_steps >> atmosphere >> earth >>
 		x >> y >> z >> vx >> vy >> vz >> t0 >> tf >> output_size >>
-		Cd >> A >> mass;
+		Cd >> A >> mass >> power >> solar_file;
 
 	StateVector x0;
 	x0 << x, y, z, vx, vy, vz;
@@ -133,6 +137,14 @@ int main () {
 	params.Cd = Cd;
 	params.A = A;
 	params.mass = mass;
+	params.power = power;
+	if (power == 1) {
+		params.solar_data = new SolarData(solar_file);
+		cout << params.solar_data->get_area(0, 0) << endl;
+		cout << params.solar_data->get_area(0.27, 0) << endl;
+		cout << params.solar_data->get_area(0.29, 0) << endl;
+		cout << params.solar_data->get_area(0.79, 0) << endl;
+	}
 
 	t0 = t0*1000.0; // Use Julian ... seconds?
 

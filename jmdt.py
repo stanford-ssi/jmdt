@@ -49,7 +49,10 @@ def run_simulation(# Time step, in seconds.
                    
                    # Power simulation parameters. 0: No power simulation,
                    # 1: simulate power (solar panels).
-                   power = 0
+                   power = 1,
+
+                   # Solar panel model file
+                   solar = "romeo.solar",
                    ):
     t0 = time.time()
     process = Popen(['./jmdt'], bufsize=-1,
@@ -61,7 +64,7 @@ def run_simulation(# Time step, in seconds.
                         mode='w+', shape=output_size*N)
     inp = [dt, report_steps, atmosphere, earth]
     inp.extend(state)
-    inp.extend([t0, tf, output_size, Cd, A, mass])
+    inp.extend([t0, tf, output_size, Cd, A, mass, power, solar])
     #print '\n'.join(map(str, inp))
     a,b=process.communicate(input='\n'.join(map(str, inp)))
     
