@@ -33,10 +33,10 @@ def run_simulation(# Time step, in seconds.
                    state = [6871009, 0, 0, 0, 6620, 3822],
                    
                    # Initial Julian date (sorry).
-                   t0 = 2457651.5,
+                   t0 = 2457467.50,
 
                    # Final time (difference), in seconds.
-                   tf = 86400,
+                   tf = 1*86400,
                    
                    # Coefficient of drag.
                    Cd = 2,
@@ -54,11 +54,11 @@ def run_simulation(# Time step, in seconds.
                    # Solar panel model file
                    solar = "ssisat-1/romeo.solar",
                    ):
-    t0 = time.time()
+    #initial = time.time()
     process = Popen(['./jmdt'], bufsize=-1,
                         stdout=PIPE, stderr=PIPE, stdin=PIPE)
     
-    output_size = 7
+    output_size = 8
     N = math.floor(tf/dt)/report_steps
     out = np.memmap('output.mmap', dtype=np.double,
                         mode='w+', shape=output_size*N)
@@ -67,11 +67,11 @@ def run_simulation(# Time step, in seconds.
     inp.extend([t0, tf, output_size, Cd, A, mass, power, solar])
     #print '\n'.join(map(str, inp))
     a,b=process.communicate(input='\n'.join(map(str, inp)))
-    
     print a,b
     
     out.shape = (N, output_size)
-    end = np.zeros(shape=(1,7))
+
+    end = np.zeros(shape=(1,output_size))
     while (out[-1] == end).all():
         out = out[:-1]
     
@@ -83,7 +83,10 @@ ts = out[:, 0]
 xs = out[:, 1]
 ys = out[:, 2]
 zs = out[:, 3]
+power = out[:, 7]
 
-plt.plot(ts, np.sqrt(xs*xs+ys*ys+zs*zs)/1000.0-6371.009)
-plt.plot(ts, 0*ts)
+plt.plot(ts, power)
+plt.ylim([0,0.05])
+#plt.plot(ts, np.sqrt(xs*xs+ys*ys+zs*zs)/1000.0-6371.009)
+#plt.plot(ts, 0*ts)
 plt.show()

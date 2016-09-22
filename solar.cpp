@@ -37,8 +37,6 @@ double SolarData::get_area(double theta, double phi) {
 	int row2 = row1+1; double phi2 = 2*M_PI/(n-1)*row2;
 	int col2 = col1+1; double theta2 = M_PI/(n-1)*col2;
 
-	cout << row1 << " " << col1 << " " << row2 << " " << col2 << endl;
-
 	double f11 = data[row1*n+col1];
 	double f12 = data[row2*n+col1];
 	double f21 = data[row1*n+col2];

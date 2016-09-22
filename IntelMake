@@ -1,0 +1,2 @@
+all:
+	/opt/intel/bin/icc -ipo -O3 -no-prec-div -fp-model fast=2 -xHost -march=native -xHost -Ofast `pkg-config --cflags eigen3` nrlmsise-00/nrlmsise-00.c nrlmsise-00/nrlmsise-00_data.c integrator.cpp atmosphere.cpp solar.cpp util.cpp jmdt.cpp -lgsl -lgslcblas -lm -lGeographic -o jmdt

@@ -80,6 +80,48 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 		out[5] += drag[2];
 	}
 
+	/* Simulate solar panels and power. */
+	if (params->power == 1) {
+		Vector3d r_es = earth_sun_vector(params->t0 + t/86400.);
+		
+		/* Vector love triangle. */
+		Vector3d rsun = r_es - rvec;
+
+		/* Simulation works with the Sun vector that "hits" the
+		 * satellite, not with the satellite-Sun vector. */
+		rsun = -rsun;
+		rsun.normalize();
+
+		/* Rotate orientation so that the satellite faces (1, 0, 0),
+		 * which is the nominal orientation that was used in the
+		 * computation of sun incidence. Remember the rotation matrix
+		 * and use it to transform the Sun-satellite vector; */
+		const Vector3d b(1, 0, 0);
+		params->orientation.normalize();
+
+		Vector3d v = params->orientation.cross(b);
+		double s = v.norm();
+		double c = params->orientation.dot(b);
+
+		Matrix<double, 3, 3> vx;
+		vx << 0, -v[2], v[1], v[2], 0, -v[0], -v[1], v[0], 0;
+
+		Matrix<double, 3, 3> R = MatrixXd::Identity(3,3) +
+						vx + vx*vx*(1./(1+c));
+
+		Vector3d rsunp = R*rsun;
+		double theta = acos(rsunp[2]);
+		double phi = atan2(rsunp[1], rsunp[0]);
+		if (phi < 0.0) {
+			phi = 2*M_PI + phi;
+		}
+
+		double area = params->solar_data->get_area(theta, phi);
+		params->output_power = area;
+	} else {
+		params->output_power = 0.0;
+	}
+
 	return out;
 }
 
@@ -141,8 +183,9 @@ int main () {
 	if (power == 1) {
 		params.solar_data = new SolarData(solar_file);
 	}
+	params.orientation << 1, 0, 0;
 
-	t0 = t0*1000.0; // Use Julian ... seconds?
+	params.t0 = t0;
 
 	clock_t start = clock();
 	ABMIntegrator integrator(func, x0, dt, &params);
@@ -160,6 +203,7 @@ int main () {
 			output[arg0+4] = integrator.x[3];
 			output[arg0+5] = integrator.x[4];
 			output[arg0+6] = integrator.x[5];
+			output[arg0+7] = params.output_power;
 		}
 		steps++;
 	}
