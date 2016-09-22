@@ -3,7 +3,7 @@
 
 #include <Eigen/Dense>
 
-#include "constants.h"
+#include "util.h"
 
 typedef Eigen::Matrix<double, 6, 1> StateVector;
 

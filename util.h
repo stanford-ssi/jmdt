@@ -1,5 +1,5 @@
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#ifndef UTIL_H
+#define UTIL_H
 
 #include <Eigen/Dense>
 #include <GeographicLib/GravityModel.hpp>

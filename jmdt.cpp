@@ -10,7 +10,7 @@
 #include <GeographicLib/GravityModel.hpp>
 #include "nrlmsise-00/nrlmsise-00.h"
 
-#include "constants.h"
+#include "util.h"
 #include "integrator.h"
 #include "atmosphere.h"
 #include "solar.h"
