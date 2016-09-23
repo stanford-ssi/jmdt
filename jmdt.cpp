@@ -13,13 +13,11 @@
 #include "util.h"
 #include "integrator.h"
 #include "atmosphere.h"
-#include "solar.h"
+#include "properties.h"
 
 using namespace std;
 using namespace Eigen;
 using namespace GeographicLib;
-
-// x y z vx vy vz
 
 typedef Matrix<double, 6, 1> StateVector;
 
@@ -48,6 +46,25 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 		out[5] = factor * x[2];
 	}
 
+	Matrix<double, 3, 3> R;
+	if ((params->atmosphere != 0 && params->drag != 0) ||
+		params->power == 1) {
+		/* For solar panel and realistic drag, we need the satellite
+		 * to face head on, using the nominal orientation according to
+		 * which the GPU script generates the model. */
+		const Vector3d b(1, 0, 0);
+		params->orientation.normalize();
+
+		Vector3d v = params->orientation.cross(b);
+		double s = v.norm();
+		double c = params->orientation.dot(b);
+
+		Matrix<double, 3, 3> vx;
+		vx << 0, -v[2], v[1], v[2], 0, -v[0], -v[1], v[0], 0;
+
+		R = MatrixXd::Identity(3, 3) + vx + vx*vx*(1./(1+c));
+	}
+
 	/* Drag. */
 	if (params->atmosphere != 0) {
 		double rho;
@@ -70,44 +87,43 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 		default:
 			rho = density_us1976(h);
 		}
+
+		double area;
+		if (params->drag == 0) {
+			area = params->A;
+		} else {
+			Vector3d vrelp = R*(-vrel.normalized());
+			double theta = acos(vrelp[2]);
+			double phi = atan2(vrelp[1], vrelp[0]);
+			if (phi < 0.0) {
+				phi = 2*M_PI + phi;
+			}
+
+			area = params->properties->get_drag_area(theta, phi);
+		}
 		
-		Vector3d drag = -0.5*params->Cd*params->A*rho*
+		Vector3d drag = -0.5*params->Cd*area*rho*
 					vrel.squaredNorm()*vrel.normalized();
 		drag = drag/params->mass;
 		
 		out[3] += drag[0];
 		out[4] += drag[1];
 		out[5] += drag[2];
+
+		params->output_BC = area;
 	}
 
 	/* Simulate solar panels and power. */
 	if (params->power == 1) {
 		Vector3d r_es = earth_sun_vector(params->t0 + t/86400.);
 		
-		/* Vector love triangle. */
+		/* Vector love triangle, shout-out to SSP :'). */
 		Vector3d rsun = r_es - rvec;
 
 		/* Simulation works with the Sun vector that "hits" the
 		 * satellite, not with the satellite-Sun vector. */
 		rsun = -rsun;
 		rsun.normalize();
-
-		/* Rotate orientation so that the satellite faces (1, 0, 0),
-		 * which is the nominal orientation that was used in the
-		 * computation of sun incidence. Remember the rotation matrix
-		 * and use it to transform the Sun-satellite vector; */
-		const Vector3d b(1, 0, 0);
-		params->orientation.normalize();
-
-		Vector3d v = params->orientation.cross(b);
-		double s = v.norm();
-		double c = params->orientation.dot(b);
-
-		Matrix<double, 3, 3> vx;
-		vx << 0, -v[2], v[1], v[2], 0, -v[0], -v[1], v[0], 0;
-
-		Matrix<double, 3, 3> R = MatrixXd::Identity(3,3) +
-						vx + vx*vx*(1./(1+c));
 
 		Vector3d rsunp = R*rsun;
 		double theta = acos(rsunp[2]);
@@ -116,7 +132,7 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 			phi = 2*M_PI + phi;
 		}
 
-		double area = params->solar_data->get_area(theta, phi);
+		double area = params->properties->get_solar_area(theta, phi);
 		params->output_power = area;
 	} else {
 		params->output_power = 0.0;
@@ -140,10 +156,11 @@ int main () {
 	double Cd, A, mass;
 	int power;
 	string solar_file;
+	string drag_file;
 
 	cin >> dt >> report_steps >> atmosphere >> earth >>
 		x >> y >> z >> vx >> vy >> vz >> t0 >> tf >> output_size >>
-		Cd >> A >> mass >> power >> solar_file;
+		Cd >> A >> mass >> power >> solar_file >> drag_file;
 
 	StateVector x0;
 	x0 << x, y, z, vx, vy, vz;
@@ -180,9 +197,8 @@ int main () {
 	params.A = A;
 	params.mass = mass;
 	params.power = power;
-	if (power == 1) {
-		params.solar_data = new SolarData(solar_file);
-	}
+	params.drag = (drag_file == "none") ? 0 : 1;
+	params.properties = new SatelliteProperties(solar_file, drag_file);
 	params.orientation << 1, 0, 0;
 
 	params.t0 = t0;
@@ -204,6 +220,7 @@ int main () {
 			output[arg0+5] = integrator.x[4];
 			output[arg0+6] = integrator.x[5];
 			output[arg0+7] = params.output_power;
+			output[arg0+8] = params.output_BC;
 		}
 		steps++;
 	}

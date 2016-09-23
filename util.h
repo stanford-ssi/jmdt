@@ -4,7 +4,7 @@
 #include <Eigen/Dense>
 #include <GeographicLib/GravityModel.hpp>
 
-#include "solar.h"
+#include "properties.h"
 
 const double EARTH_MU = 3.986004418e14;
 const double EARTH_RADIUS = 6371009.0;
@@ -21,11 +21,12 @@ struct IntegratorParams {
 	double A;
 	double mass;
 	int power;
-	SolarData* solar_data;
+	SatelliteProperties* properties;
 	double t0;
 	Eigen::Vector3d orientation;
-
+	int drag;
 	double output_power;
+	double output_BC;
 };
 
 Eigen::Vector3d earth_sun_vector(double jd);

@@ -5,6 +5,8 @@ import numpy as np
 with open(sys.argv[1]) as f:
 	t = f.readlines()
 
+mode = sys.argv[2]
+
 # Ayyy one liners FTW
 parsed = map(lambda x: [x.split(": ")[0], map(lambda y: map(float, y.split(",")), x.split(": ")[1].split(" "))], t)
 
@@ -75,7 +77,7 @@ __kernel void solar(__global const float4* initials, __global float* output, flo
 					q = initials[gid]+t*rayvec;
 					if (intriangle(q, vertices[4*i+0], vertices[4*i+1], vertices[4*i+3]) || intriangle(q, vertices[4*i+1], vertices[4*i+2], vertices[4*i+3]) ) {
 						tclose = t;
-						valclose = types[i]*fabs(d);
+						valclose = %s;
 					}
 				}
 			}
@@ -84,13 +86,13 @@ __kernel void solar(__global const float4* initials, __global float* output, flo
 	output[gid] = valclose; //(initials[gid]+t*rayvec).z;
 }
 
-""" % (len(parsed), types, vertices, normals)
+""" % (len(parsed), types, vertices, normals, 'types[i]*fabs(d)' if mode == 'solar' else '1.0')
 #print src
 
 prg = cl.Program(ctx, src).build()
 
 d = 0.6;
-NN=300
+NN=400
 output_np = np.zeros(NN*NN, dtype=np.float32)
 output_g = cl.Buffer(ctx, mf.WRITE_ONLY, output_np.nbytes)
 

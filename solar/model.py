@@ -1,4 +1,4 @@
-import sys
+Wimport sys
 import time
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,7 +21,7 @@ script = os.path.realpath(__file__).replace('model.py', 'internal.py')
 z = []
 
 for x in data:
-	process = Popen(['python', script, sys.argv[1]], bufsize=-1,
+	process = Popen(['python', script, sys.argv[1], sys.argv[2]], bufsize=-1,
                         stdout=PIPE, stderr=PIPE, stdin=PIPE)
 	inp = ""
 	for a,b in x:
@@ -36,8 +36,9 @@ for x in data:
 
 satname = sys.argv[1].split('.')[0]
 
-np.array(z).tofile(satname+'.solar')
-
+ext = '.solar' if sys.argv[2] == 'solar' else '.drag'
+np.array(z).tofile(satname+ext)
+print "saving", satname+ext
 exit()
 z = np.array(z)
 z.shape = (N, N)
