@@ -27,3 +27,19 @@ Vector3d earth_sun_vector(double jd) {
 
 	return out;
 }
+
+/* r_sat is the geocentric vector of the satellite, r_sun is a Sun-Earth
+ * vector. This function just assumes that the shadow is a cylinder, and
+ * tests whether the satellite is inside said cylinder. */
+bool satellite_in_shade(Vector3d& r_sat, Vector3d r_sun) {
+
+	r_sun = r_sun.normalized();
+
+	double dot = r_sat.dot(r_sun);
+	if (dot < 0.0) return false;
+	else {
+		double dst2 = r_sat.squaredNorm() - dot*dot;
+		if (dst2 < EARTH_RADIUS*EARTH_RADIUS) return true;
+		else return false;
+	}
+}

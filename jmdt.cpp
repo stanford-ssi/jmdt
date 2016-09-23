@@ -116,24 +116,34 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 	/* Simulate solar panels and power. */
 	if (params->power == 1) {
 		Vector3d r_es = earth_sun_vector(params->t0 + t/86400.);
-		
-		/* Vector love triangle, shout-out to SSP :'). */
-		Vector3d rsun = r_es - rvec;
 
-		/* Simulation works with the Sun vector that "hits" the
-		 * satellite, not with the satellite-Sun vector. */
-		rsun = -rsun;
-		rsun.normalize();
+		if (!satellite_in_shade(rvec, -r_es)) {
+			/* Vector love triangle, shout-out to SSP :'). */
+			Vector3d rsun = r_es - rvec;
+			double dist2 = rsun.squaredNorm();
 
-		Vector3d rsunp = R*rsun;
-		double theta = acos(rsunp[2]);
-		double phi = atan2(rsunp[1], rsunp[0]);
-		if (phi < 0.0) {
-			phi = 2*M_PI + phi;
+			/* Simulation works with the Sun vector that "hits" the
+			 * satellite, not with the satellite-Sun vector. */
+			rsun = -rsun;
+			rsun.normalize();
+
+			Vector3d rsunp = R*rsun;
+			double theta = acos(rsunp[2]);
+			double phi = atan2(rsunp[1], rsunp[0]);
+			if (phi < 0.0) {
+				phi = 2*M_PI + phi;
+			}
+
+			double area = params->properties->get_solar_area(theta,
+								phi);
+			params->output_power = params->solar_efficiency * 
+							area *
+							SOLAR_CONSTANT *
+							dist2/AU/AU;
+		} else {
+			params->output_power = 0.0;
 		}
 
-		double area = params->properties->get_solar_area(theta, phi);
-		params->output_power = area;
 	} else {
 		params->output_power = 0.0;
 	}
@@ -157,10 +167,12 @@ int main () {
 	int power;
 	string solar_file;
 	string drag_file;
+	double solar_efficiency;
 
 	cin >> dt >> report_steps >> atmosphere >> earth >>
 		x >> y >> z >> vx >> vy >> vz >> t0 >> tf >> output_size >>
-		Cd >> A >> mass >> power >> solar_file >> drag_file;
+		Cd >> A >> mass >> power >> solar_file >> drag_file >>
+		solar_efficiency;
 
 	StateVector x0;
 	x0 << x, y, z, vx, vy, vz;
@@ -200,7 +212,7 @@ int main () {
 	params.drag = (drag_file == "none") ? 0 : 1;
 	params.properties = new SatelliteProperties(solar_file, drag_file);
 	params.orientation << 1, 0, 0;
-
+	params.solar_efficiency = solar_efficiency;
 	params.t0 = t0;
 
 	clock_t start = clock();

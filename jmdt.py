@@ -36,7 +36,7 @@ def run_simulation(# Time step, in seconds.
                    t0 = 2457467.50,
 
                    # Final time (difference), in seconds.
-                   tf = 1*86400,
+                   tf = 365*86400,
                    
                    # Coefficient of drag.
                    Cd = 2,
@@ -56,6 +56,9 @@ def run_simulation(# Time step, in seconds.
 
                    # Satellite area model file, or "none" if not using one.
                    drag = "ssisat-1/romeo.drag",
+                   
+                   # Efficiency of the solar panels.
+                   solar_efficiency = 0.27,
                    ):
     #initial = time.time()
     process = Popen(['./jmdt'], bufsize=-1,
@@ -67,8 +70,9 @@ def run_simulation(# Time step, in seconds.
                         mode='w+', shape=output_size*N)
     inp = [dt, report_steps, atmosphere, earth]
     inp.extend(state)
-    inp.extend([t0, tf, output_size, Cd, A, mass, power, solar, drag])
-    print '\n'.join(map(str, inp))
+    inp.extend([t0, tf, output_size, Cd, A, mass, power, solar, drag,
+                solar_efficiency])
+    #print '\n'.join(map(str, inp))
     a,b=process.communicate(input='\n'.join(map(str, inp)))
     print a,b
     
@@ -89,8 +93,8 @@ zs = out[:, 3]
 power = out[:, 7]
 BC = out[:, 8]
 
-plt.plot(ts, BC)
-plt.ylim([0,0.05])
+plt.plot(ts, power)
+#plt.ylim([0,0.05])
 #plt.plot(ts, np.sqrt(xs*xs+ys*ys+zs*zs)/1000.0-6371.009)
 #plt.plot(ts, 0*ts)
 plt.show()

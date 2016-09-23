@@ -28,7 +28,6 @@ SatelliteProperties::SatelliteProperties(string solar_file, string drag_file) {
 	}
 
 	if (drag_file != "none") {
-		cout << "wat m8" << endl;
 		ifstream file (drag_file.c_str(),
 			ios::in | ios::binary | ios::ate);
 		int bytes = file.tellg();

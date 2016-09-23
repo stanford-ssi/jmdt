@@ -10,6 +10,7 @@ const double EARTH_MU = 3.986004418e14;
 const double EARTH_RADIUS = 6371009.0;
 const Eigen::Vector3d EARTH_OMEGA(0, 0, 7.2921150e-5);
 const double AU = 149597870700;
+const double SOLAR_CONSTANT = 1360.8;
 
 const double DEG2RAD = M_PI/180.0;
 
@@ -25,10 +26,13 @@ struct IntegratorParams {
 	double t0;
 	Eigen::Vector3d orientation;
 	int drag;
+	double solar_efficiency;
+
 	double output_power;
 	double output_BC;
 };
 
 Eigen::Vector3d earth_sun_vector(double jd);
+bool satellite_in_shade(Eigen::Vector3d& r_sat, Eigen::Vector3d r_sun);
 
 #endif
