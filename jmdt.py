@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from subprocess import Popen, PIPE
 
 import atexit
-atexit.register(lambda: os.remove('output.mmap'))
+#atexit.register(lambda: os.remove('output.mmap'))
 
 def run_simulation(# Time step, in seconds.
                    dt = 10,
@@ -111,7 +111,7 @@ zs = out[:, 3]
 power = out[:, 7]
 BC = out[:, 8]
 
-plt.plot(ts, power)
+plt.plot(ts, BC)
 #plt.ylim([0,0.05])
 #plt.plot(ts, np.sqrt(xs*xs+ys*ys+zs*zs)/1000.0-6371.009)
 #plt.plot(ts, 0*ts)

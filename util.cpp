@@ -43,3 +43,29 @@ bool satellite_in_shade(Vector3d& r_sat, Vector3d r_sun) {
 		else return false;
 	}
 }
+
+void jd_to_date(double jd, double& year, double& month, double& day, double& hour, double& minute, double& second) {
+	jd += 0.5;
+	double z = floor(jd);
+	double f = jd-z;
+
+	double a;
+	if (z < 2299161) {
+		a = z;
+	} else {
+		double alpha = floor((z-1867216.25)/36524.25);
+		a = z + 1 + alpha - floor(alpha/4);
+	}
+	double b = a+1524;
+	double c = floor( (b-122.1)/365.25);
+	double d = floor(365.25*c);
+	double e = floor((b-d)/30.6001);
+	double _dd = b - d - floor(30.6001*e) + f;
+	day = floor(_dd);
+	double _hh = (_dd-day)*24;
+	hour = floor(_hh);
+	double _minu = (_hh-hour)*60;
+	minute = floor(_minu);
+	month = (e < 13.5) ? (e-1) : (e-13);
+	year = (month > 2.5) ? (c-4716) : (c-4715);
+}

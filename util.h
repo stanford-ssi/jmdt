@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include <GeographicLib/GravityModel.hpp>
+#include <GeographicLib/Geocentric.hpp>
 
 #include "properties.h"
 
@@ -32,12 +33,19 @@ struct IntegratorParams {
 	string orientation_str;
 	int two_satellites;
 	StateVector* lover;
+	double doy;
+	double sec;
 
 	double output_power;
 	double output_BC;
 };
 
 Eigen::Vector3d earth_sun_vector(double jd);
+
 bool satellite_in_shade(Eigen::Vector3d& r_sat, Eigen::Vector3d r_sun);
+
+void jd_to_date(double jd, double& year, double& month, double& day, double& hour, double& minute, double& second);
+
+const GeographicLib::Geocentric EARTH = GeographicLib::Geocentric::WGS84();
 
 #endif

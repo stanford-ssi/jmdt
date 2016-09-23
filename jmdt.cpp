@@ -38,6 +38,7 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 	case 2:
 		params->gravity_object->V(x[0], x[1], x[2],
 					  out[3], out[4], out[5]);
+		break;
 	case 0:
 	default:
 		double factor = -EARTH_MU/pow(rmag, 3);
@@ -49,14 +50,15 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 	Vector3d vec(x[3], x[4], x[5]);
 
 	if (params->drag != 0 || params->power != 0) {
-		if (params->orientation_str == "t") {
+		if ((params->orientation_str == "t")
+			&& (params->lover != NULL)) {
 			StateVector rtgt = *(params->lover);
 			Vector3d tgt(rtgt[0], rtgt[1], rtgt[2]);
 			params->orientation = tgt-rvec;
-		} else if (params->orientation_str == "p") {
-			params->orientation = vec;
 		} else if (params->orientation_str == "r") {
 			params->orientation = rvec;
+		} else { // if (params->orientation_str == "p") {
+			params->orientation = vec;
 		}
 	}
 
@@ -100,6 +102,32 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 		Vector3d vrel = vec - EARTH_OMEGA.cross(rvec);
 
 		switch (params->atmosphere) {
+		case 2:
+			nrlmsise_input inp;
+			inp.year = 2016; // ignored by the library
+			inp.doy = fmod(params->doy + (t/86400.0), 365.25);
+			inp.sec = fmod(params->sec + t, 86400);
+
+			double lat, lon;
+			EARTH.Reverse(x[0], x[1], x[2], lat, lon, h);
+			inp.alt = h;
+			inp.g_lat = lat;
+			inp.g_long = lon;
+			inp.lst = inp.sec/3600 + inp.g_long/15;
+
+			/* TODO: Use space weather data. */
+			inp.f107A = 150.0;
+			inp.f107 = 150.0;
+			inp.ap = 4.0;
+
+			nrlmsise_flags flags;
+			for (int i=0;i<24;i++) {
+  				flags.switches[i]=1;
+  			}
+  			nrlmsise_output output;
+  			gtd7d(&inp, &flags, &output);
+  			rho = output.d[5];
+  			break;
 		case 1:
 		default:
 			rho = density_us1976(h);
@@ -217,7 +245,6 @@ int main () {
 	 * 
 	 * To get a few milliseconds of performance. That's why. Argh! */
 	FILE* fmap = fopen("output.mmap", "r+");
-	cout << 8*output_size*ceil(tf/dt/report_steps) << endl;
 	double* output = (double*) mmap(0,
 					8*output_size*ceil(tf/dt/report_steps),
 					PROT_WRITE, MAP_SHARED,
@@ -242,6 +269,12 @@ int main () {
 	params.solar_efficiency = solar_efficiency;
 	params.t0 = t0;
 	params.two_satellites = two_satellites;
+	params.lover = NULL;
+
+	double year, month, day, hour, minute, second;
+	//jd_to_date(t0, year, month, day, hour, minute, second);
+	//params.doy = month*30.44 + day; // more or less...
+	//params.sec = hour*3600 + minute*60 + second;
 
 	IntegratorParams second_params;
 	if (two_satellites == 1) {
