@@ -36,7 +36,7 @@ def run_simulation(# Time step, in seconds.
                    t0 = 2457467.50,
 
                    # Final time (difference), in seconds.
-                   tf = 365*86400,
+                   tf = 1*86400,
                    
                    # Coefficient of drag.
                    Cd = 2,
@@ -59,19 +59,37 @@ def run_simulation(# Time step, in seconds.
                    
                    # Efficiency of the solar panels.
                    solar_efficiency = 0.27,
+                   
+                   # Simulate two satellites at the same time. No
+                   # multithreading for now, though.
+                   two_satellites = 1,
+                   
+                   # Initial state of the second satellite.
+                   second_state = [6871009, 0, 0, 0, 6620, 3822],
+                   
+                   # Orientation mode for the first satellite.
+                   # t: Target (i.e. the other satellite)
+                   # r: Radial
+                   # p: Prograde
+                   first_orientation = "t",
+                   
+                   # Orientation mode for the second satellite.
+                   second_orientation = "r"
                    ):
     #initial = time.time()
     process = Popen(['./jmdt'], bufsize=-1,
                         stdout=PIPE, stderr=PIPE, stdin=PIPE)
     
-    output_size = 9
+    output_size = 15
     N = math.floor(tf/dt)/report_steps
     out = np.memmap('output.mmap', dtype=np.double,
                         mode='w+', shape=output_size*N)
     inp = [dt, report_steps, atmosphere, earth]
     inp.extend(state)
     inp.extend([t0, tf, output_size, Cd, A, mass, power, solar, drag,
-                solar_efficiency])
+                solar_efficiency, two_satellites])
+    inp.extend(second_state)
+    inp.extend([first_orientation, second_orientation])
     #print '\n'.join(map(str, inp))
     a,b=process.communicate(input='\n'.join(map(str, inp)))
     print a,b

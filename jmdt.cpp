@@ -46,6 +46,20 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 		out[5] = factor * x[2];
 	}
 
+	Vector3d vec(x[3], x[4], x[5]);
+
+	if (params->drag != 0 || params->power != 0) {
+		if (params->orientation_str == "t") {
+			StateVector rtgt = *(params->lover);
+			Vector3d tgt(rtgt[0], rtgt[1], rtgt[2]);
+			params->orientation = tgt-rvec;
+		} else if (params->orientation_str == "p") {
+			params->orientation = vec;
+		} else if (params->orientation_str == "r") {
+			params->orientation = rvec;
+		}
+	}
+
 	Matrix<double, 3, 3> R;
 	if ((params->atmosphere != 0 && params->drag != 0) ||
 		params->power == 1) {
@@ -59,10 +73,14 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 		double s = v.norm();
 		double c = params->orientation.dot(b);
 
-		Matrix<double, 3, 3> vx;
-		vx << 0, -v[2], v[1], v[2], 0, -v[0], -v[1], v[0], 0;
+		R = MatrixXd::Identity(3, 3);
 
-		R = MatrixXd::Identity(3, 3) + vx + vx*vx*(1./(1+c));
+		if (fabs(c + 1) > 0.00001) {
+			Matrix<double, 3, 3> vx;
+			vx << 0, -v[2], v[1], v[2], 0, -v[0], -v[1], v[0], 0;
+
+			R = R + vx + vx*vx*(1./(1+c));
+		}
 	}
 
 	/* Drag. */
@@ -79,7 +97,6 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 			h = rmag - EARTH_RADIUS;
 		}
 		
-		Vector3d vec(x[3], x[4], x[5]);
 		Vector3d vrel = vec - EARTH_OMEGA.cross(rvec);
 
 		switch (params->atmosphere) {
@@ -110,7 +127,7 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 		out[4] += drag[1];
 		out[5] += drag[2];
 
-		params->output_BC = area;
+		params->output_BC = params->mass/(params->Cd*area);
 	}
 
 	/* Simulate solar panels and power. */
@@ -168,14 +185,23 @@ int main () {
 	string solar_file;
 	string drag_file;
 	double solar_efficiency;
+	int two_satellites;
+	double x2, y2, z2, vx2, vy2, vz2;
+	string first_orientation;
+	string second_orientation;
 
 	cin >> dt >> report_steps >> atmosphere >> earth >>
 		x >> y >> z >> vx >> vy >> vz >> t0 >> tf >> output_size >>
 		Cd >> A >> mass >> power >> solar_file >> drag_file >>
-		solar_efficiency;
+		solar_efficiency >> two_satellites >>
+		x2 >> y2 >> z2 >> vx2 >> vy2 >> vz2 >> first_orientation >>
+		second_orientation;
 
 	StateVector x0;
 	x0 << x, y, z, vx, vy, vz;
+
+	StateVector second_x0;
+	second_x0 << x2, y2, z2, vx2, vy2, vz2;
 
 	/* Well, that was quite stupid. So at first I was like, oh, I want to
 	 * communicate with Python! I have the power of Unix, I'll use pipes
@@ -212,15 +238,38 @@ int main () {
 	params.drag = (drag_file == "none") ? 0 : 1;
 	params.properties = new SatelliteProperties(solar_file, drag_file);
 	params.orientation << 1, 0, 0;
+	params.orientation_str = first_orientation;
 	params.solar_efficiency = solar_efficiency;
 	params.t0 = t0;
+	params.two_satellites = two_satellites;
+
+	IntegratorParams second_params;
+	if (two_satellites == 1) {
+		second_params = params;
+		
+		// No need to simulate power for the second one
+		second_params.power = 0;
+
+		second_params.orientation_str = second_orientation;
+	}
 
 	clock_t start = clock();
 	ABMIntegrator integrator(func, x0, dt, &params);
 
+	ABMIntegrator* second_integrator;
+	if (two_satellites == 1) {
+		second_integrator = new ABMIntegrator(func, second_x0,
+							dt, &second_params);
+		params.lover = &second_integrator->x;
+		second_params.lover = &integrator.x;
+	}
+
 	int steps = 0;
 	while (integrator.t < tf) {
 		integrator.step();
+		if (two_satellites == 1) {
+			second_integrator->step();
+		}
 
 		if (steps % report_steps == 0) {
 			int arg0 = output_size*steps/report_steps;
@@ -233,6 +282,14 @@ int main () {
 			output[arg0+6] = integrator.x[5];
 			output[arg0+7] = params.output_power;
 			output[arg0+8] = params.output_BC;
+			if (two_satellites == 1) {
+				output[arg0+9] = second_integrator->x[0];
+				output[arg0+10] = second_integrator->x[1];
+				output[arg0+11] = second_integrator->x[2];
+				output[arg0+12] = second_integrator->x[3];
+				output[arg0+13] = second_integrator->x[4];
+				output[arg0+14] = second_integrator->x[5];
+			}
 		}
 		steps++;
 	}

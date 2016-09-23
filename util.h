@@ -14,6 +14,8 @@ const double SOLAR_CONSTANT = 1360.8;
 
 const double DEG2RAD = M_PI/180.0;
 
+typedef Eigen::Matrix<double, 6, 1> StateVector;
+
 struct IntegratorParams {
 	int earth;
 	int atmosphere;
@@ -27,6 +29,9 @@ struct IntegratorParams {
 	Eigen::Vector3d orientation;
 	int drag;
 	double solar_efficiency;
+	string orientation_str;
+	int two_satellites;
+	StateVector* lover;
 
 	double output_power;
 	double output_BC;
