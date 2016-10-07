@@ -62,7 +62,7 @@ def run_simulation(# Time step, in seconds.
                    
                    # Simulate two satellites at the same time. No
                    # multithreading for now, though.
-                   two_satellites = 1,
+                   two_satellites = 0,
                    
                    # Initial state of the second satellite.
                    second_state = [6871009, 0, 0, 0, 6620, 3822],
@@ -71,10 +71,11 @@ def run_simulation(# Time step, in seconds.
                    # t: Target (i.e. the other satellite)
                    # r: Radial
                    # p: Prograde
-                   first_orientation = "t",
+                   # s: Sun-facing
+                   first_orientation = "s",
                    
                    # Orientation mode for the second satellite.
-                   second_orientation = "r"
+                   second_orientation = "s"
                    ):
     #initial = time.time()
     process = Popen(['./jmdt'], bufsize=-1,
@@ -111,7 +112,7 @@ zs = out[:, 3]
 power = out[:, 7]
 BC = out[:, 8]
 
-plt.plot(ts, BC)
+plt.plot(ts, power)
 #plt.ylim([0,0.05])
 #plt.plot(ts, np.sqrt(xs*xs+ys*ys+zs*zs)/1000.0-6371.009)
 #plt.plot(ts, 0*ts)

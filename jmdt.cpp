@@ -31,6 +31,9 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 
 	Vector3d rvec(x[0], x[1], x[2]);
 	double rmag = rvec.norm();
+
+	Vector3d r_es = earth_sun_vector(params->t0 + t/86400.);
+	Vector3d rsun = r_es - rvec;
 	
 	/* Gravity. */
 	switch (params->earth) {
@@ -57,8 +60,10 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 			params->orientation = tgt-rvec;
 		} else if (params->orientation_str == "r") {
 			params->orientation = rvec;
-		} else { // if (params->orientation_str == "p") {
+		} else if (params->orientation_str == "p") {
 			params->orientation = vec;
+		} else { // look at the Sun
+			params->orientation = rsun;
 		}
 	}
 
@@ -160,11 +165,8 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 
 	/* Simulate solar panels and power. */
 	if (params->power == 1) {
-		Vector3d r_es = earth_sun_vector(params->t0 + t/86400.);
-
 		if (!satellite_in_shade(rvec, -r_es)) {
 			/* Vector love triangle, shout-out to SSP :'). */
-			Vector3d rsun = r_es - rvec;
 			double dist2 = rsun.squaredNorm();
 
 			/* Simulation works with the Sun vector that "hits" the
