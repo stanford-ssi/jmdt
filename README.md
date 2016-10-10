@@ -3,7 +3,7 @@ Exercise caution and a healthy dose of scientific skepticism.
 
 # Features
 - C++ code with a Python wrapper for plots and glue. It's very fast: about 800 simulated days in orbit per second using the most simple settings (and a time step of 10 seconds), and a respectable 150 simulated days per second using WGS84, and simulating both solar panels and drag.
-- Takes 3D models of an arbitrary satellite as input, so it can figure out what power the satellite is getting from any orientation, and what the frontal area for drag is. Painfully enough, it even takes into account when parts of the satellite are blocking part of the solar panels.
+- Takes 3D models of an arbitrary satellite as input, so it can figure out what power the satellite is getting from any orientation, and what the frontal area for drag is. Painfully enough, it even takes into account when parts of the satellite are blocking part of the solar panels. This is computed on the GPU using OpenCL.
 - Three gravity models: point mass, WGS84, EGM96.
 - Three atmospheric models: none, US1976 and NRLMSISE-00.
 - Adams-Bashforth-Moulton integrator.
