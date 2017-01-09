@@ -2,8 +2,12 @@ import math
 import os
 import time
 
+import matplotlib as mpl
 import numpy as np
+from numpy import linalg as la
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+#from mpl_toolkits.basemap import Basemap
 
 from subprocess import Popen, PIPE
 
@@ -15,7 +19,7 @@ def run_simulation(# Time step, in seconds.
 
                    # Send data over to Python over this many integration steps,
                    # i.e. every report_steps*dt seconds.
-                   report_steps = 1,
+                   report_steps = 60,
 
                    # Atmospheric model. 0: None, 1: US1976, 2: NRLMSISE-00
                    # 0 is fastest, 1 is pretty fast (interpolated values),
@@ -31,12 +35,13 @@ def run_simulation(# Time step, in seconds.
 
                    # Initial state vector: (x, y, z, vx, vy, vz).
                    state = [6871009, 0, 0, 0, 6620, 3822],
+                   #state = [6771009, 0, 0, 0, 6620, 3822],
 
                    # Initial Julian date (sorry).
                    t0 = 2457467.50,
 
                    # Final time (difference), in seconds.
-                   tf = 1*86400,
+                   tf = 365*86400,
 
                    # Coefficient of drag.
                    Cd = 2,
@@ -45,7 +50,7 @@ def run_simulation(# Time step, in seconds.
                    A = 0.1*(0.15+0.1+0.15),
 
                    # Mass of the satellite.
-                   mass = 1.0*1.5,
+                   mass = 2.0*1.5,
 
                    # Power simulation parameters. 0: No power simulation,
                    # 1: simulate power (solar panels).
@@ -105,15 +110,67 @@ def run_simulation(# Time step, in seconds.
 
 out = run_simulation()
 
-ts = out[:, 0]
+ts = out[:, 0]/86400.0
 xs = out[:, 1]
 ys = out[:, 2]
 zs = out[:, 3]
+xv = out[:, 4]
+yv = out[:, 5]
+zv = out[:, 6]
 power = out[:, 7]
 BC = out[:, 8]
 
-plt.plot(ts, power)
+theta = np.linspace(0 , 2 * np.pi, 100)
+earthx = 6371000 * np.cos(theta)
+earthy = 6371000 * np.sin(theta)
+
+#plt.plot(ts, power)
+
+fig1 = plt.figure()
+
+# Altitude plot
+ax_pos = plt.subplot(211)
+plt.plot(ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009)
+
+# Velocity plot
+ax_vel = plt.subplot(212)
+plt.plot(ts, np.sqrt(xv*xv + yv*yv + zv*zv))
+plt.show()
+
+
+#fig = plt.figure()
+#ax = fig.gca(projection='3d')
+#ax.plot(xs, ys, zs, color='#be1e2d')
+
+#
+# # set up orthographic map projection with
+# # perspective of satellite looking down at 50N, 100W.
+# # use low resolution coastlines.
+# map = Basemap(projection='ortho',lat_0=45,lon_0=-100,resolution='l')
+# # draw coastlines, country boundaries, fill continents.
+# map.drawcoastlines(linewidth=0.25)
+# map.drawcountries(linewidth=0.25)
+# map.fillcontinents(color='coral',lake_color='aqua')
+# # draw the edge of the map projection region (the projection limb)
+# map.drawmapboundary(fill_color='aqua')
+# # draw lat/lon grid lines every 30 degrees.
+# map.drawmeridians(np.arange(0,360,30))
+# map.drawparallels(np.arange(-90,90,30))
+# # make up some data on a regular lat/lon grid.
+# nlats = 73; nlons = 145; delta = 2.*np.pi/(nlons-1)
+# lats = (0.5*np.pi-delta*np.indices((nlats,nlons))[0,:,:])
+# lons = (delta*np.indices((nlats,nlons))[1,:,:])
+# wave = 0.75*(np.sin(2.*lats)**8*np.cos(4.*lons))
+# mean = 0.5*np.cos(2.*lats)*((np.sin(2.*lats))**2 + 2.)
+# # compute native map projection coordinates of lat/lon grid.
+# x, y = map(lons*180./np.pi, lats*180./np.pi)
+# # contour data over the map.
+# cs = map.contour(x,y,wave+mean,15,linewidths=1.5)
+# plt.title('contour lines over filled continent background')
+# plt.show()
+
+
+
 #plt.ylim([0,0.05])
 #plt.plot(ts, np.sqrt(xs*xs+ys*ys+zs*zs)/1000.0-6371.009)
 #plt.plot(ts, 0*ts)
-plt.show()
