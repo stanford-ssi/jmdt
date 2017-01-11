@@ -65,7 +65,7 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 			StateVector rtgt = *(params->lover);
 			Vector3d tgt(rtgt[0], rtgt[1], rtgt[2]);
 			params->orientation = tgt-rvec;
-		} else if (params->orientation_str == "z") || ((params->orientation_str == "c1") && (params->lover != NULL)) {
+		} else if ((params->orientation_str == "z") || ((params->orientation_str == "c1") && (params->lover != NULL))) {
 			params->orientation = rvec;
 		} else if (params->orientation_str == "n") {
 			params->orientation = -rvec;
