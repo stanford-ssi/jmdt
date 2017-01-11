@@ -8,7 +8,10 @@ with open(sys.argv[1]) as f:
 mode = sys.argv[2]
 
 # Ayyy one liners FTW
-parsed = map(lambda x: [x.split(": ")[0], map(lambda y: map(float, y.split(",")), x.split(": ")[1].split(" "))], t)
+vertices = dict(map(lambda (x,y): (x, map(float,y.split(','))), map(lambda x: x.split("$"), t[0].split(" "))))
+parsed = map(lambda x: [x.split(": ")[0], map(lambda v: vertices[v], x.split(": ")[1].strip().split(','))], t[1:])
+
+vdict = vertices
 
 import os
 os.environ["PYOPENCL_CTX"] = "0"
@@ -91,18 +94,18 @@ __kernel void solar(__global const float4* initials, __global float* output, flo
 
 prg = cl.Program(ctx, src).build()
 
-d = 0.6;
+d = 0.7;
 NN=400
 output_np = np.zeros(NN*NN, dtype=np.float32)
 output_g = cl.Buffer(ctx, mf.WRITE_ONLY, output_np.nbytes)
 
 inp = sys.stdin.read().split(" ")[:-1]
 inp = map(lambda x: map(float, x.split(',')), inp)
-
+#inp = [('a','b')]
 t0 = time.time()
 for a,b in inp:
 	#
-	#vector = np.array([-1,-1,0])
+	#vector = np.array([1,0,0])
 	vector = np.array([np.sin(a)*np.cos(b),np.sin(a)*np.sin(b),np.cos(a)])
 	vector = vector/np.linalg.norm(vector)
 	p0 = -2*vector
@@ -146,16 +149,26 @@ output_np.shape = (NN, NN)
 #exit()
 import matplotlib.pyplot as plt
 
-"""
+
 from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from mpl_toolkits.mplot3d import proj3d
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.scatter([x[0]+i/100.0 for i,x in enumerate(vertices)],[x[1] for x in vertices],[x[2] for x in vertices])
+vertices=vv
+#colors = colors = "bgrcmykw"
+for i, poly in enumerate(parsed):
+    ax.add_collection3d(Poly3DCollection([poly[1]],alpha=0.5))
+#ax.scatter([x[0] for i,x in enumerate(vertices)],[x[1] for x in vertices],[x[2] for x in vertices])
 ax.scatter([x[0] for x in vv],[x[1] for x in vv],[x[2] for x in vv])
-a=0.6
+ax.scatter(vertices_np[:,0], vertices_np[:,1], vertices_np[:,2])
 ax.auto_scale_xyz([-a,a], [-a,a],[-a,a])
+for a, p in vdict.iteritems():
+    tr = proj3d.proj_transform(p[0],p[1],p[2], ax.get_proj())
+    ax.annotate(str(a), (tr[0], tr[1]))
+a=0.6
 plt.show()
-exit()"""
+exit()
 
 
 print output_np

@@ -1,10 +1,10 @@
-Wimport sys
+import sys
 import time
 import numpy as np
 import matplotlib.pyplot as plt
 from subprocess import Popen, PIPE
 
-N = 100
+N = 30
 
 theta = np.linspace(0, np.pi, N)
 phi = np.linspace(0, 2*np.pi, N)
@@ -36,10 +36,10 @@ for x in data:
 
 satname = sys.argv[1].split('.')[0]
 
-ext = '.solar' if sys.argv[2] == 'solar' else '.drag'
-np.array(z).tofile(satname+ext)
-print "saving", satname+ext
-exit()
+#ext = '.solar' if sys.argv[2] == 'solar' else '.drag'
+#np.array(z).tofile(satname+ext)
+#print "saving", satname+ext
+#exit()
 z = np.array(z)
 z.shape = (N, N)
 

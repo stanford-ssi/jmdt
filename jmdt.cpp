@@ -53,14 +53,21 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 	Vector3d vec(x[3], x[4], x[5]);
 
 	if (params->drag != 0 || params->power != 0) {
+		if ((params->orientation_str[0] == 'c') && (params->lover != NULL)) {
+			StateVector rtgtv = *(params->lover);
+			Vector3d diff(rtgtv[0]-rvec[0], rtgtv[1]-rvec[1], rtgtv[2]-rvec[2]);
+			if (diff.squaredNorm() > 100000.0*100000.0) {
+				params->orientation_str = "p";
+			}	
+		}
 		if ((params->orientation_str == "t")
 			&& (params->lover != NULL)) {
 			StateVector rtgt = *(params->lover);
 			Vector3d tgt(rtgt[0], rtgt[1], rtgt[2]);
 			params->orientation = tgt-rvec;
-		} else if (params->orientation_str == "r") {
+		} else if ((params->orientation_str == "r") || ((params->orientation_str == "c1") && (params->lover != NULL))) {
 			params->orientation = rvec;
-		} else if (params->orientation_str == "p") {
+		} else if ((params->orientation_str == "p") || ((params->orientation_str == "c2") && (params->lover != NULL))) {
 			params->orientation = vec;
 		} else { // look at the Sun
 			params->orientation = rsun;
@@ -138,16 +145,19 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 			rho = density_us1976(h);
 		}
 
-		double area;
-		if (params->drag == 0) {
-			area = params->A;
-		} else {
 			Vector3d vrelp = R*(-vrel.normalized());
-			double theta = acos(vrelp[2]);
+			double theta = acos(vrel.normalized()[2]);
 			double phi = atan2(vrelp[1], vrelp[0]);
 			if (phi < 0.0) {
 				phi = 2*M_PI + phi;
 			}
+			/*if (phi > M_PI) {
+				phi = 2*M_PI - phi;
+			}*/
+		double area;
+		if (params->drag == 0) {
+			area = params->A;
+		} else {
 
 			area = params->properties->get_drag_area(theta, phi);
 		}
@@ -160,7 +170,7 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 		out[4] += drag[1];
 		out[5] += drag[2];
 
-		params->output_BC = params->mass/(params->Cd*area);
+		params->output_BC = drag.norm();//params->mass/(params->Cd*area);
 	}
 
 	/* Simulate solar panels and power. */
@@ -324,6 +334,8 @@ int main () {
 				output[arg0+12] = second_integrator->x[3];
 				output[arg0+13] = second_integrator->x[4];
 				output[arg0+14] = second_integrator->x[5];
+				output[arg0+15] = second_params.output_power;
+				output[arg0+16] = second_params.output_BC;
 			}
 		}
 		steps++;
