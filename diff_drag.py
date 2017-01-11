@@ -131,7 +131,7 @@ def run_simulation(# Time step, in seconds.
     process = Popen(['./jmdt'], bufsize=-1,
                         stdout=PIPE, stderr=PIPE, stdin=PIPE)
 
-    output_size = 15
+    output_size = 17
     N = math.floor(tf/dt)/report_steps
     out = np.memmap('output.mmap', dtype=np.double,
                         mode='w+', shape=output_size*N)

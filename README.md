@@ -12,5 +12,5 @@ Exercise caution and a healthy dose of scientific skepticism.
 - When the time comes, one can *somewhat* trivially perform hardware in the loop with this tool as the physical plant and, before that, debug control algorithms.
 
 # Contact
-Joan Creus-Costa `<jcreus@stanford.edu>`
-Sasha Maldonado `<amaldona@stanford.edu>`, but he's hardly as useful
+- Joan Creus-Costa `<jcreus@stanford.edu>`
+- Sasha Maldonado `<amaldona@stanford.edu>`, but he's hardly as useful
