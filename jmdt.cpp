@@ -52,6 +52,16 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 
 	Vector3d vec(x[3], x[4], x[5]);
 
+// Begin world's jankiest janktroller
+
+if(params->two_satellites == 1){
+	if(params->i_am_leader == 1){
+
+	}
+}
+
+// End janktroller
+
 	if (params->drag != 0 || params->power != 0) {
 		if ((params->orientation_str[0] == 'c') && (params->lover != NULL)) {
 			StateVector rtgtv = *(params->lover);
@@ -229,7 +239,7 @@ int main () {
 	string solar_file;
 	string drag_file;
 	double solar_efficiency;
-	int two_satellites;
+	int two_satellites, separation_target;
 	double x2, y2, z2, vx2, vy2, vz2;
 	string first_orientation;
 	string second_orientation;
@@ -237,7 +247,7 @@ int main () {
 	cin >> dt >> report_steps >> atmosphere >> earth >>
 		x >> y >> z >> vx >> vy >> vz >> t0 >> tf >> output_size >>
 		Cd >> A >> mass >> power >> solar_file >> drag_file >>
-		solar_efficiency >> two_satellites >>
+		solar_efficiency >> two_satellites >> separation_target >>
 		x2 >> y2 >> z2 >> vx2 >> vy2 >> vz2 >> first_orientation >>
 		second_orientation;
 
@@ -285,6 +295,8 @@ int main () {
 	params.solar_efficiency = solar_efficiency;
 	params.t0 = t0;
 	params.two_satellites = two_satellites;
+	params.i_am_leader = true;
+	params.separation_target = separation_target;
 	params.lover = NULL;
 
 	double year, month, day, hour, minute, second;
@@ -298,6 +310,9 @@ int main () {
 
 		// No need to simulate power for the second one
 		second_params.power = 0;
+
+		// Second satellite is follower
+		second_params.i_am_leader = false;
 
 		second_params.orientation_str = second_orientation;
 	}

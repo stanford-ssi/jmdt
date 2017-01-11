@@ -2,3 +2,4 @@
 /nrlmsise-00/nrlmsise_test
 *.o
 jmdt
+util.h.gch

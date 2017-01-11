@@ -114,6 +114,9 @@ def run_simulation(# Time step, in seconds.
                    # multithreading for now, though.
                    two_satellites = 1,
 
+                   # Separation target
+                   separation_target = 100000, # [m]
+
                    # Initial state of the second satellite.
                    second_state = [r_earth + altitude_0, 0, 0, vx_0_2, vy_0_2, vz_0_2],
 
@@ -140,7 +143,7 @@ def run_simulation(# Time step, in seconds.
     inp = [dt, report_steps, atmosphere, earth]
     inp.extend(state)
     inp.extend([t0, tf, output_size, Cd, A, mass, power, solar, drag,
-                solar_efficiency, two_satellites])
+                solar_efficiency, two_satellites, separation_target])
     inp.extend(second_state)
     inp.extend([first_orientation, second_orientation])
     #print '\n'.join(map(str, inp))

@@ -33,6 +33,8 @@ struct IntegratorParams {
 	string orientation_str;
 	int two_satellites;
 	StateVector* lover;
+	int i_am_leader;
+	int separation_target;
 	double doy;
 	double sec;
 
