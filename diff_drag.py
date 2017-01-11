@@ -18,15 +18,35 @@ import atexit
 r_earth = 6371009 # [m]
 
 # Initial altitude
-altitude_0 = 500 * 1000 # [m]
+altitude_0 = 490 * 1000 # [m]
 
+# TODO: Currently assumes orbit starts at periapsis
+# Periapsis
+r_peri = altitude_0 + r_earth
+
+# TODO: Currently assumes orbit starts at periapsis
+# Orbital elements
+orbital_e = 0.002                                                   # Eccentricity [unitless]
+orbital_i = 28.0                                                    # Inclination [deg]
+orbital_a = r_peri * (1 + ((1 + orbital_e)/(1 - orbital_e)))/2.0    # Semi-major axis [m]
+#orbital_Omega                                                      # unimplemented
+#orbital_omega                                                      # unimplemented
+#orbital_nu                                                         # unimplemented
+
+# Gravitational constant
+mu_earth = 398600441500000.0 # [m^3/s^2] - definitely not that exact to that many decimals, but converted from km to m
+
+# Calculate v_0 from orbital elements (see Vis-Viva Law)
+v_0 = (mu_earth * ((2.0/r_peri)-(1.0/orbital_a))) ** 0.5    # [m/s]
+
+# TODO: Currently assumes orbit starts at periapsis and that periapsis occurs when x = 0
 # Define three components of initial velocity
-vx_0 = 0.0      # [m/s]
-vy_0 = 6620.0   # [m/s]
-vz_0 = 3822.0   # [m/s]
+vx_0 = 0.0                              # [m/s]
+vy_0 = v_0 * math.sin(orbital_i)        # [m/s]
+vz_0 = v_0 * math.cos(orbital_i)        # [m/s]
 
 # Calculate initial velocity magnitude
-v_0 = np.sqrt(vx_0**2 + vy_0**2 + vz_0**2)
+# v_0 = np.sqrt(vx_0**2 + vy_0**2 + vz_0**2)
 
 # Specify desired separation velocity between satellites (set to 0 if not separating or using a single satellite)
 vseparation = 0.1 # [m/s]
@@ -50,7 +70,7 @@ def run_simulation(# Time step, in seconds.
                    # 0 is fastest, 1 is pretty fast (interpolated values),
                    # 2 is much slower but more realistic (changes with time
                    # and space weather).
-                   atmosphere = 1,
+                   atmosphere = 2,
 
                    # Earth gravity model. 0: Point mass, 1: WGS84, 2: EGM96
                    # Point mass is fastest, WGS84 has zonal coefficients up to
@@ -58,14 +78,15 @@ def run_simulation(# Time step, in seconds.
                    # degree 360.
                    earth = 1,
 
+                   # TODO: Currently assumes orbit starts at periapsis and that periapsis occurs when x = 0
                    # Initial state vector: (x, y, z, vx, vy, vz).
-                   state = [r_earth + altitude_0, 0, 0, vx_0_1, vy_0_1, vz_0_1],
+                   state = [r_peri, 0, 0, vx_0_1, vy_0_1, vz_0_1],
 
                    # Initial Julian date (sorry).
                    t0 = 2457467.50, # [days] - yes, it's dumb, but it's standard
 
                    # Final time (difference)
-                   tf = 7.5*86400, # [s]
+                   tf = 5 * 86400, # [s]
 
                    # Coefficient of drag.
                    Cd = 2,
@@ -164,10 +185,14 @@ plt.savefig('diff_drag.png', bbox_inches='tight')
 # Altitude plot
 ax_pos = plt.subplot(312)
 plt.plot(ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'r-', ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'b-')
+plt.ylabel('Satellite altitude (km)')
+plt.xlabel('Time (days)')
 
 # Velocity plot
 ax_vel = plt.subplot(313)
 plt.plot(ts, np.sqrt(xv*xv + yv*yv + zv*zv))
+plt.ylabel('Satellite velocity (m/s)')
+plt.xlabel('Time (days)')
 plt.show()
 
 

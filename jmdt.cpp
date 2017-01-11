@@ -34,7 +34,7 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 
 	Vector3d r_es = earth_sun_vector(params->t0 + t/86400.);
 	Vector3d rsun = r_es - rvec;
-	
+
 	/* Gravity. */
 	switch (params->earth) {
 	case 1:
@@ -93,7 +93,7 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 	/* Drag. */
 	if (params->atmosphere != 0) {
 		double rho;
-		
+
 		/* Get geopotential height. Not implemented properly yet. */
 		double h;
 		switch (params->earth) {
@@ -103,7 +103,7 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 		default:
 			h = rmag - EARTH_RADIUS;
 		}
-		
+
 		Vector3d vrel = vec - EARTH_OMEGA.cross(rvec);
 
 		switch (params->atmosphere) {
@@ -115,7 +115,7 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 
 			double lat, lon;
 			EARTH.Reverse(x[0], x[1], x[2], lat, lon, h);
-			inp.alt = h;
+			inp.alt = h/1000.;
 			inp.g_lat = lat;
 			inp.g_long = lon;
 			inp.lst = inp.sec/3600 + inp.g_long/15;
@@ -151,11 +151,11 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 
 			area = params->properties->get_drag_area(theta, phi);
 		}
-		
+
 		Vector3d drag = -0.5*params->Cd*area*rho*
 					vrel.squaredNorm()*vrel.normalized();
 		drag = drag/params->mass;
-		
+
 		out[3] += drag[0];
 		out[4] += drag[1];
 		out[5] += drag[2];
@@ -183,7 +183,7 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 
 			double area = params->properties->get_solar_area(theta,
 								phi);
-			params->output_power = params->solar_efficiency * 
+			params->output_power = params->solar_efficiency *
 							area *
 							SOLAR_CONSTANT *
 							dist2/AU/AU;
@@ -240,11 +240,11 @@ int main () {
 	 * Which was sad. So I tried to instead compile this as a library, and
 	 * run it from Python with ctypes, and it was working fine, but for
 	 * some reason it was still really slow. My suspicion is that there
-	 * couldn't be as many optimizations because of position independent 
-	 * code or something like that. So instead I shared memory between a 
+	 * couldn't be as many optimizations because of position independent
+	 * code or something like that. So instead I shared memory between a
 	 * Python array and C++ with mmap, which I had never used before, and
 	 * after some pain, achieve really fast IPC. Why, you might ask?
-	 * 
+	 *
 	 * To get a few milliseconds of performance. That's why. Argh! */
 	FILE* fmap = fopen("output.mmap", "r+");
 	double* output = (double*) mmap(0,
@@ -281,7 +281,7 @@ int main () {
 	IntegratorParams second_params;
 	if (two_satellites == 1) {
 		second_params = params;
-		
+
 		// No need to simulate power for the second one
 		second_params.power = 0;
 
