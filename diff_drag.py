@@ -18,7 +18,7 @@ import atexit
 r_earth = 6371009 # [m]
 
 # Initial altitude
-altitude_0 = 490 * 1000 # [m]
+altitude_0 = 600 * 1000 # [m]
 
 # TODO: Currently assumes orbit starts at periapsis
 # Periapsis
@@ -26,7 +26,7 @@ r_peri = altitude_0 + r_earth
 
 # TODO: Currently assumes orbit starts at periapsis
 # Orbital elements
-orbital_e = 0.002                                                   # Eccentricity [unitless]
+orbital_e = 0.0                                                 # Eccentricity [unitless]
 orbital_i = 28.0                                                    # Inclination [deg]
 orbital_a = r_peri * (1 + ((1 + orbital_e)/(1 - orbital_e)))/2.0    # Semi-major axis [m]
 #orbital_Omega                                                      # unimplemented
@@ -86,7 +86,7 @@ def run_simulation(# Time step, in seconds.
                    t0 = 2457467.50, # [days] - yes, it's dumb, but it's standard
 
                    # Final time (difference)
-                   tf = 5 * 86400, # [s]
+                   tf = 30 * 86400, # [s]
 
                    # Coefficient of drag.
                    Cd = 2,
@@ -119,13 +119,15 @@ def run_simulation(# Time step, in seconds.
 
                    # Orientation mode for the first satellite.
                    # t: Target (i.e. the other satellite)
-                   # r: Radial
+                   # z: Zenith
+                   # n: Nadir
                    # p: Prograde
+                   # r: Retrograde
                    # s: Sun-facing
-                   first_orientation = "p",
+                   first_orientation = "r",
 
                    # Orientation mode for the second satellite.
-                   second_orientation = "r"
+                   second_orientation = "z"
                    ):
     #initial = time.time()
     process = Popen(['./jmdt'], bufsize=-1,

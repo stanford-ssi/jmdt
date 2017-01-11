@@ -58,17 +58,21 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 			Vector3d diff(rtgtv[0]-rvec[0], rtgtv[1]-rvec[1], rtgtv[2]-rvec[2]);
 			if (diff.squaredNorm() > 100000.0*100000.0) {
 				params->orientation_str = "p";
-			}	
+			}
 		}
 		if ((params->orientation_str == "t")
 			&& (params->lover != NULL)) {
 			StateVector rtgt = *(params->lover);
 			Vector3d tgt(rtgt[0], rtgt[1], rtgt[2]);
 			params->orientation = tgt-rvec;
-		} else if ((params->orientation_str == "r") || ((params->orientation_str == "c1") && (params->lover != NULL))) {
+		} else if (params->orientation_str == "z") || ((params->orientation_str == "c1") && (params->lover != NULL)) {
 			params->orientation = rvec;
+		} else if (params->orientation_str == "n") {
+			params->orientation = -rvec;
 		} else if ((params->orientation_str == "p") || ((params->orientation_str == "c2") && (params->lover != NULL))) {
 			params->orientation = vec;
+		} else if (params->orientation_str == "r") {
+			params->orientation = -vec;
 		} else { // look at the Sun
 			params->orientation = rsun;
 		}
