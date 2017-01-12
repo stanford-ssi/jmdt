@@ -18,7 +18,7 @@ import atexit
 r_earth = 6371009 # [m]
 
 # Initial altitude
-altitude_0 = 600 * 1000 # [m]
+altitude_0 = 520 * 1000 # [m]
 
 # TODO: Currently assumes orbit starts at periapsis
 # Periapsis
@@ -26,12 +26,14 @@ r_peri = altitude_0 + r_earth
 
 # TODO: Currently assumes orbit starts at periapsis
 # Orbital elements
-orbital_e = 0.0                                                 # Eccentricity [unitless]
-orbital_i = 28.0                                                    # Inclination [deg]
+orbital_e = 0.001                                                 # Eccentricity [unitless]
+orbital_i = 98.0                                                    # Inclination [deg]
 orbital_a = r_peri * (1 + ((1 + orbital_e)/(1 - orbital_e)))/2.0    # Semi-major axis [m]
 #orbital_Omega                                                      # unimplemented
 #orbital_omega                                                      # unimplemented
 #orbital_nu                                                         # unimplemented
+
+print(orbital_a)
 
 # Gravitational constant
 mu_earth = 398600441500000.0 # [m^3/s^2] - definitely not that exact to that many decimals, but converted from km to m
@@ -145,7 +147,7 @@ def run_simulation(# Time step, in seconds.
 
                    # Constants of differential drag PI controller
                    k_i_drag = -0.02,
-                   k_p_drag = -7500.0,
+                   k_p_drag = -10000.0,
 
                    # TODO - implement propulsion
                    # Enable propulsion
@@ -185,7 +187,8 @@ def run_simulation(# Time step, in seconds.
 
     return out
 
-out = run_simulation()
+
+out = run_simulation(f107A = 150.0, f107 = 150.0, ap = 4.0)
 
 ts = out[:, 0]/86400.0
 xs = out[:, 1]
@@ -204,51 +207,125 @@ yv2 = out[:, 13]
 zv2 = out[:, 14]
 
 dd = out[:, 17]
-dd2 = out[:, 18]
+dd21 = out[:, 18]
 
-#plt.plot(ts, power)
+figX = plt.figure(figsize = (15,9))
+ax_dis = plt.subplot(111)
+avg_dens, = plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-', label = 'Typical Density')
 
-fig1 = plt.figure()
+# High solar flux, high magnetic activity
 
-# Separation distance plot
-ax_pos = plt.subplot(311)
-plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-')
-plt.ylabel('Separation distance (km)')
-plt.xlabel('Time (days)')
-#plt.savefig('diff_drag.png', bbox_inches='tight')
+out2 = run_simulation(f107A = 300.0, f107 = 300.0, ap = 40.0)
 
-# Altitude plot
-ax_pos = plt.subplot(312)
-plt.plot(ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'r-', ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'b-')
-plt.ylabel('Satellite altitude (km)')
-plt.xlabel('Time (days)')
+ts12 = out2[:, 0]/86400.0
+xs12 = out2[:, 1]
+ys12 = out2[:, 2]
+zs12 = out2[:, 3]
+xv12 = out2[:, 4]
+yv12 = out2[:, 5]
+zv12 = out2[:, 6]
+power2 = out2[:, 7]
+BC2 = out2[:, 8]
+xs22 = out2[:, 9]
+ys22 = out2[:, 10]
+zs22 = out2[:, 11]
+xv22 = out2[:, 12]
+yv22 = out2[:, 13]
+zv22 = out2[:, 14]
 
-# Velocity plot
-ax_vel = plt.subplot(313)
-plt.plot(ts, np.sqrt(xv*xv + yv*yv + zv*zv) - np.sqrt(xv2*xv2 + yv2*yv2 + zv2*zv2))
-plt.ylabel('Satellite velocity (m/s)')
-plt.xlabel('Time (days)')
-#plt.show()
+dd2 = out2[:, 17]
+dd22 = out2[:, 18]
 
-fig2 = plt.figure(figsize = (10,12))
-ax_dis = plt.subplot(311)
-plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-')
+high_dens, = plt.plot(ts12, np.sqrt((xs12-xs22)**2 + (ys12-ys22)**2 + (zs12-zs22)**2)/1000.0 , 'b-', label = 'High Density')
+
+# Low solar flux, low magnetic activity
+
+out3 = run_simulation(f107A = 100.0, f107 = 100.0, ap = 4.0)
+
+ts13 = out3[:, 0]/86400.0
+xs13 = out3[:, 1]
+ys13 = out3[:, 2]
+zs13 = out3[:, 3]
+xv13 = out3[:, 4]
+yv13 = out3[:, 5]
+zv13 = out3[:, 6]
+power3 = out3[:, 7]
+BC3 = out3[:, 8]
+xs23 = out3[:, 9]
+ys23 = out3[:, 10]
+zs23 = out3[:, 11]
+xv23 = out3[:, 12]
+yv23 = out3[:, 13]
+zv23 = out3[:, 14]
+
+dd3 = out3[:, 17]
+dd23 = out3[:, 18]
+
+low_dens, = plt.plot(ts13, np.sqrt((xs13-xs23)**2 + (ys13-ys23)**2 + (zs13-zs23)**2)/1000.0 , 'r-', label = 'Low Density')
+
 plt.plot(ts, np.ones(len(ts)) * target_distance/1000 , 'k--')
 plt.ylabel('Separation Distance (km)')
 plt.xlabel('Time (days)')
-
-ax_dd = plt.subplot(312)
-plt.plot(ts, dd)
-plt.ylabel('Drift Velocity (m/s)')
-plt.xlabel('Time (days)')
-
-ax_dd2 = plt.subplot(313)
-plt.plot(ts, dd2)
-plt.ylabel('Filtered Drift Velocity (m/s)')
-plt.xlabel('Time (days)')
-plt.savefig('pi_controller.png', bbox_inches='tight')
-
+plt.legend(handles=[low_dens, avg_dens, high_dens], loc = 'lower right')
+plt.title('Differential Drag Performance in 520 x 560 km Sun Synchronous Orbit')
+plt.savefig('pi_controller_space_weather.png', bbox_inches='tight')
 plt.show()
+
+#plt.plot(ts, power)
+
+# fig1 = plt.figure()
+#
+# # Separation distance plot
+# ax_pos = plt.subplot(311)
+# plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-')
+# plt.ylabel('Separation distance (km)')
+# plt.xlabel('Time (days)')
+# #plt.savefig('diff_drag.png', bbox_inches='tight')
+#
+# # Altitude plot
+# ax_pos = plt.subplot(312)
+# plt.plot(ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'r-', ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'b-')
+# plt.ylabel('Satellite altitude (km)')
+# plt.xlabel('Time (days)')
+#
+# # Velocity plot
+# ax_vel = plt.subplot(313)
+# plt.plot(ts, np.sqrt(xv*xv + yv*yv + zv*zv) - np.sqrt(xv2*xv2 + yv2*yv2 + zv2*zv2))
+# plt.ylabel('Satellite velocity (m/s)')
+# plt.xlabel('Time (days)')
+# #plt.show()
+
+
+
+
+# fig2 = plt.figure(figsize = (10,12))
+# ax_dis = plt.subplot(311)
+# plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-')
+# #plt.plot(ts12, np.sqrt((xs12-xs22)**2 + (ys12-ys22)**2 + (zs12-zs22)**2)/1000.0 , 'b-')
+# #plt.plot(ts13, np.sqrt((xs13-xs23)**2 + (ys13-ys23)**2 + (zs13-zs23)**2)/1000.0 , 'r-')
+# plt.plot(ts, np.ones(len(ts)) * target_distance/1000 , 'k--')
+# plt.ylabel('Separation Distance (km)')
+# plt.xlabel('Time (days)')
+#
+# ax_dd = plt.subplot(312)
+# plt.plot(ts, dd, 'g-')
+# #plt.plot(ts12, dd2, 'b-')
+# #plt.plot(ts13, dd3)
+# plt.ylabel('Drift Velocity (m/s)')
+# plt.xlabel('Time (days)')
+#
+# ax_dd2 = plt.subplot(313)
+# plt.plot(ts, dd21, 'g-')
+# #plt.plot(ts12, dd22, 'b-')
+# #plt.plot(ts13, dd23)
+# plt.ylabel('Filtered Drift Velocity (m/s)')
+# plt.xlabel('Time (days)')
+# plt.savefig('pi_controller.png', bbox_inches='tight')
+#
+# plt.show()
+
+
+
 
 #fig = plt.figure()
 #ax = fig.gca(projection='3d')
