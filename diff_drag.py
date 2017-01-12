@@ -18,7 +18,7 @@ import atexit
 r_earth = 6371009 # [m]
 
 # Initial altitude
-altitude_0 = 550 * 1000 # [m]
+altitude_0 = 600 * 1000 # [m]
 
 # TODO: Currently assumes orbit starts at periapsis
 # Periapsis
@@ -86,7 +86,7 @@ def run_simulation(# Time step, in seconds.
                    t0 = 2457467.50, # [days] - yes, it's dumb, but it's standard
 
                    # Final time (difference)
-                   tf = 100 * 86400, # [s]
+                   tf = 20 * 86400, # [s]
 
                    # Coefficient of drag.
                    Cd = 2,

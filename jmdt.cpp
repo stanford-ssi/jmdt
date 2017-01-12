@@ -4,6 +4,7 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <string>
+#include <queue>
 
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
@@ -51,55 +52,6 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 	}
 
 	Vector3d vec(x[3], x[4], x[5]);
-
-// Begin world's jankiest janktroller
-
-if((params->two_satellites == 1) && (params->lover != NULL)){
-	StateVector rtgtv = *(params->lover);
-	Vector3d rvec_other(rtgtv[0], rtgtv[1], rtgtv[2]);
-	Vector3d diff(rvec[0]-rvec_other[0], rvec[1]-rvec_other[1], rvec[2]-rvec_other[2]);
-	Vector3d vec_other(rtgtv[3], rtgtv[4], rtgtv[5]);
-	Vector3d diff_vec(vec[0]-vec_other[0], vec[1]-vec_other[1], vec[2]-vec_other[2]);
-
-	// See http://math.stackexchange.com/questions/1481701/time-derivative-of-the-distance-between-2-points-moving-over-time
-
-	Vector3d bearing(rvec[0]-rvec_other[0], rvec[1]-rvec_other[1], rvec[2]-rvec_other[2]);
-	bearing.normalize();
-	double dist_deriv(bearing[0]*diff_vec[0] + bearing[1]*diff_vec[1] + bearing[2]*diff_vec[2]);
-
-	/*if(diff.norm() < params->separation_target){
-		if(dist_deriv > 0){
-			if(params->i_am_leader == 1 ){
-				params->orientation_str = "r";
-			}else{
-				params->orientation_str = "n";
-			}
-		//}else{
-			if(params->i_am_leader == 1 ){
-				params->orientation_str = "n";
-			}else{
-				params->orientation_str = "r";
-			}
-		}
-	}else{
-		if(dist_deriv > 0){
-			if(params->i_am_leader == 1 ){
-				params->orientation_str = "r";
-			}else{
-				params->orientation_str = "n";
-			}
-		}else{
-			if(params->i_am_leader == 1 ){
-				params->orientation_str = "n";
-			}else{
-				params->orientation_str = "r";
-			}
-		}
-	}*/
-	params->distance_derivative = diff_vec.norm();
-}
-
-// End janktroller
 
 	if (params->drag != 0 || params->power != 0) {
 		if ((params->orientation_str[0] == 'c') && (params->lover != NULL)) {
@@ -370,11 +322,77 @@ int main () {
 	}
 
 	int steps = 0;
+
+	// Yeah, I took CS106X
+	queue<double> dist_deriv_lpf;
+	int lpf_max_samples = 5000;
+
 	while (integrator.t < tf) {
 		integrator.step();
 		if (two_satellites == 1) {
 			second_integrator->step();
 		}
+
+		// Begin world's jankiest janktroller
+
+		if(params.two_satellites == 1){
+			Vector3d rvec_lead(integrator.x[0], integrator.x[1], integrator.x[2]);
+			Vector3d rvec_follow(second_integrator->x[0], second_integrator->x[1], second_integrator->x[2]);
+			Vector3d diff(rvec_lead[0]-rvec_follow[0], rvec_lead[1]-rvec_follow[1], rvec_lead[2]-rvec_follow[2]);
+
+			Vector3d vec_lead(integrator.x[3], integrator.x[4], integrator.x[5]);
+			Vector3d vec_follow(second_integrator->x[3], second_integrator->x[4], second_integrator->x[5]);
+			Vector3d diff_vec(vec_lead[0]-vec_follow[0], vec_lead[1]-vec_follow[1], vec_lead[2]-vec_follow[2]);
+
+			// See http://math.stackexchange.com/questions/1481701/time-derivative-of-the-distance-between-2-points-moving-over-time
+
+			Vector3d bearing(rvec_lead[0]-rvec_follow[0], rvec_lead[1]-rvec_follow[1], rvec_lead[2]-rvec_follow[2]);
+			bearing.normalize();
+			double dist_deriv = (bearing[0]*diff_vec[0] + bearing[1]*diff_vec[1] + bearing[2]*diff_vec[2]);
+
+			dist_deriv_lpf.push(dist_deriv);
+
+			if(dist_deriv_lpf.size() > lpf_max_samples){
+				dist_deriv_lpf.pop();
+			}
+
+			double lpf_sum = 0;
+			int lpf_size = dist_deriv_lpf.size();
+
+			for(int i = 0; i < lpf_size; i++){
+				double oldest_elem = dist_deriv_lpf.front();
+				dist_deriv_lpf.pop();
+				lpf_sum += oldest_elem;
+				dist_deriv_lpf.push(oldest_elem); // Cycle the array elements around
+			}
+
+			double dist_deriv_filtered = lpf_sum / lpf_size;
+
+			if(diff.norm() < params.separation_target){
+				if(dist_deriv_filtered > 0){
+					params.orientation_str = 'r';
+					second_params.orientation_str = 'n';
+				}else{
+					params.orientation_str = 'n';
+					second_params.orientation_str = 'r';
+				}
+			}else{
+				if(dist_deriv_filtered > 0){
+					params.orientation_str = 'r';
+					second_params.orientation_str = 'n';
+				}else{
+					params.orientation_str = 'n';
+					second_params.orientation_str = 'r';
+				}
+			}
+
+			params.distance_derivative = dist_deriv;
+			second_params.distance_derivative = dist_deriv_filtered;
+		}
+
+		// End janktroller
+
+
 
 		if (steps % report_steps == 0) {
 			int arg0 = output_size*steps/report_steps;
