@@ -326,6 +326,7 @@ int main () {
 	// Yeah, I took CS106X
 	queue<double> dist_deriv_lpf;
 	int lpf_max_samples = 5000;
+	double lpf_sum = 0;
 
 	while (integrator.t < tf) {
 		integrator.step();
@@ -350,23 +351,17 @@ int main () {
 			bearing.normalize();
 			double dist_deriv = (bearing[0]*diff_vec[0] + bearing[1]*diff_vec[1] + bearing[2]*diff_vec[2]);
 
+			// Low Pass Filtering
+
 			dist_deriv_lpf.push(dist_deriv);
+			lpf_sum += dist_deriv;
 
 			if(dist_deriv_lpf.size() > lpf_max_samples){
+				lpf_sum -= dist_deriv_lpf.front();
 				dist_deriv_lpf.pop();
 			}
 
-			double lpf_sum = 0;
-			int lpf_size = dist_deriv_lpf.size();
-
-			for(int i = 0; i < lpf_size; i++){
-				double oldest_elem = dist_deriv_lpf.front();
-				dist_deriv_lpf.pop();
-				lpf_sum += oldest_elem;
-				dist_deriv_lpf.push(oldest_elem); // Cycle the array elements around
-			}
-
-			double dist_deriv_filtered = lpf_sum / lpf_size;
+			double dist_deriv_filtered = lpf_sum / dist_deriv_lpf.size();
 
 			if(diff.norm() < params.separation_target){
 				if(dist_deriv_filtered > 0){
