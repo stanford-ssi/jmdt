@@ -86,7 +86,7 @@ def run_simulation(# Time step, in seconds.
                    t0 = 2457467.50, # [days] - yes, it's dumb, but it's standard
 
                    # Final time (difference)
-                   tf = 20 * 86400, # [s]
+                   tf = 30 * 86400, # [s]
 
                    # Coefficient of drag.
                    Cd = 2,
@@ -130,7 +130,12 @@ def run_simulation(# Time step, in seconds.
                    first_orientation = "r",
 
                    # Orientation mode for the second satellite.
-                   second_orientation = "z"
+                   second_orientation = "z",
+
+                   # Constants of PI controller
+                   k_i = -0.02,
+                   k_p = -7500.0
+
                    ):
     #initial = time.time()
     process = Popen(['./jmdt'], bufsize=-1,
@@ -146,6 +151,7 @@ def run_simulation(# Time step, in seconds.
                 solar_efficiency, two_satellites, separation_target])
     inp.extend(second_state)
     inp.extend([first_orientation, second_orientation])
+    inp.extend([k_i, k_p])
     #print '\n'.join(map(str, inp))
     a,b=process.communicate(input='\n'.join(map(str, inp)))
     print a,b
@@ -181,39 +187,44 @@ dd2 = out[:, 18]
 
 #plt.plot(ts, power)
 
-fig1 = plt.figure()
-
-# Separation distance plot
-ax_pos = plt.subplot(311)
-plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-')
-plt.ylabel('Separation distance (km)')
-plt.xlabel('Time (days)')
-plt.savefig('diff_drag.png', bbox_inches='tight')
-
-# Altitude plot
-ax_pos = plt.subplot(312)
-plt.plot(ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'r-', ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'b-')
-plt.ylabel('Satellite altitude (km)')
-plt.xlabel('Time (days)')
-
-# Velocity plot
-ax_vel = plt.subplot(313)
-plt.plot(ts, np.sqrt(xv*xv + yv*yv + zv*zv))
-plt.ylabel('Satellite velocity (m/s)')
-plt.xlabel('Time (days)')
+# fig1 = plt.figure()
+#
+# # Separation distance plot
+# ax_pos = plt.subplot(311)
+# plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-')
+# plt.ylabel('Separation distance (km)')
+# plt.xlabel('Time (days)')
+# plt.savefig('diff_drag.png', bbox_inches='tight')
+#
+# # Altitude plot
+# ax_pos = plt.subplot(312)
+# plt.plot(ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'r-', ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'b-')
+# plt.ylabel('Satellite altitude (km)')
+# plt.xlabel('Time (days)')
+#
+# # Velocity plot
+# ax_vel = plt.subplot(313)
+# plt.plot(ts, np.sqrt(xv*xv + yv*yv + zv*zv))
+# plt.ylabel('Satellite velocity (m/s)')
+# plt.xlabel('Time (days)')
 #plt.show()
 
-fig2 = plt.figure()
+fig2 = plt.figure(figsize = (10,12))
 ax_dis = plt.subplot(311)
 plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-')
-
+plt.ylabel('Separation Distance (km)')
 plt.xlabel('Time (days)')
 
 ax_dd = plt.subplot(312)
 plt.plot(ts, dd)
+plt.ylabel('Drift Velocity (m/s)')
+plt.xlabel('Time (days)')
 
 ax_dd2 = plt.subplot(313)
 plt.plot(ts, dd2)
+plt.ylabel('Filtered Drift Velocity (m/s)')
+plt.xlabel('Time (days)')
+plt.savefig('pi_controller.png', bbox_inches='tight')
 
 plt.show()
 

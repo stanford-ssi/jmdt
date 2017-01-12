@@ -234,13 +234,14 @@ int main () {
 	double x2, y2, z2, vx2, vy2, vz2;
 	string first_orientation;
 	string second_orientation;
+	double k_i, k_p;
 
 	cin >> dt >> report_steps >> atmosphere >> earth >>
 		x >> y >> z >> vx >> vy >> vz >> t0 >> tf >> output_size >>
 		Cd >> A >> mass >> power >> solar_file >> drag_file >>
 		solar_efficiency >> two_satellites >> separation_target >>
 		x2 >> y2 >> z2 >> vx2 >> vy2 >> vz2 >> first_orientation >>
-		second_orientation;
+		second_orientation >> k_i >> k_p;
 
 	StateVector x0;
 	x0 << x, y, z, vx, vy, vz;
@@ -363,22 +364,17 @@ int main () {
 
 			double dist_deriv_filtered = lpf_sum / dist_deriv_lpf.size();
 
-			if(diff.norm() < params.separation_target){
-				if(dist_deriv_filtered > 0){
-					params.orientation_str = 'r';
-					second_params.orientation_str = 'n';
-				}else{
-					params.orientation_str = 'n';
-					second_params.orientation_str = 'r';
-				}
+			double err_i = diff.norm() - params.separation_target; // Integral error term
+			double err_p = dist_deriv_filtered; // Proportional error term, which is just velocity
+
+			double controller_response = (k_i * err_i) + (k_p * err_p);
+
+			if(controller_response < 0){
+				params.orientation_str = 'r';
+				second_params.orientation_str = 'n';
 			}else{
-				if(dist_deriv_filtered > 0){
-					params.orientation_str = 'r';
-					second_params.orientation_str = 'n';
-				}else{
-					params.orientation_str = 'n';
-					second_params.orientation_str = 'r';
-				}
+				params.orientation_str = 'n';
+				second_params.orientation_str = 'r';
 			}
 
 			params.distance_derivative = dist_deriv;
