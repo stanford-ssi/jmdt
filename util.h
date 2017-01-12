@@ -33,10 +33,16 @@ struct IntegratorParams {
 	string orientation_str;
 	int two_satellites;
 	StateVector* lover;
-	int i_am_leader;
+
+	int i_am_leader; // Unused
 	int separation_target;
-	double distance_derivative;
-	double filter;
+	double distance_derivative; // No longer used for what it was created for
+
+	double f107A;
+	double f107;
+	double ap;
+
+	double filter; // Unused
 	double doy;
 	double sec;
 

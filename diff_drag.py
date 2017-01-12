@@ -135,6 +135,11 @@ def run_simulation(# Time step, in seconds.
                    # Orientation mode for the second satellite.
                    second_orientation = "z",
 
+                   # Space weather parameters
+                   f107A = 150.0, # Longer-term average 10.7 cm wavelength solar flux [sfu]
+                   f107 = 150.0, # Short-term 10.7 cm wavelength solar flux [sfu]
+                   ap = 4.0,    # Magnetic index - empirically determined [nT]
+
                    # Enable differential drag
                    differential_drag = 1,
 
@@ -165,6 +170,7 @@ def run_simulation(# Time step, in seconds.
                 solar_efficiency, two_satellites, separation_target])
     inp.extend(second_state)
     inp.extend([first_orientation, second_orientation])
+    inp.extend([f107A, f107 , ap])
     inp.extend([differential_drag, k_i_drag , k_p_drag])
     inp.extend([propulsion, k_i_prop , k_p_prop])
     #print '\n'.join(map(str, inp))
@@ -202,26 +208,26 @@ dd2 = out[:, 18]
 
 #plt.plot(ts, power)
 
-# fig1 = plt.figure()
-#
-# # Separation distance plot
-# ax_pos = plt.subplot(311)
-# plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-')
-# plt.ylabel('Separation distance (km)')
-# plt.xlabel('Time (days)')
-# plt.savefig('diff_drag.png', bbox_inches='tight')
-#
-# # Altitude plot
-# ax_pos = plt.subplot(312)
-# plt.plot(ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'r-', ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'b-')
-# plt.ylabel('Satellite altitude (km)')
-# plt.xlabel('Time (days)')
-#
-# # Velocity plot
-# ax_vel = plt.subplot(313)
-# plt.plot(ts, np.sqrt(xv*xv + yv*yv + zv*zv))
-# plt.ylabel('Satellite velocity (m/s)')
-# plt.xlabel('Time (days)')
+fig1 = plt.figure()
+
+# Separation distance plot
+ax_pos = plt.subplot(311)
+plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-')
+plt.ylabel('Separation distance (km)')
+plt.xlabel('Time (days)')
+#plt.savefig('diff_drag.png', bbox_inches='tight')
+
+# Altitude plot
+ax_pos = plt.subplot(312)
+plt.plot(ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'r-', ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'b-')
+plt.ylabel('Satellite altitude (km)')
+plt.xlabel('Time (days)')
+
+# Velocity plot
+ax_vel = plt.subplot(313)
+plt.plot(ts, np.sqrt(xv*xv + yv*yv + zv*zv) - np.sqrt(xv2*xv2 + yv2*yv2 + zv2*zv2))
+plt.ylabel('Satellite velocity (m/s)')
+plt.xlabel('Time (days)')
 #plt.show()
 
 fig2 = plt.figure(figsize = (10,12))

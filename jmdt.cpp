@@ -133,9 +133,10 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 			inp.lst = inp.sec/3600 + inp.g_long/15;
 
 			/* TODO: Use space weather data. */
-			inp.f107A = 150.0;
-			inp.f107 = 150.0;
-			inp.ap = 4.0;
+			// Consider http://omniweb.gsfc.nasa.gov/form/dx1.html
+			inp.f107A = params->f107A;
+			inp.f107 = params->f107;
+			inp.ap = params->ap;
 
 			nrlmsise_flags flags;
 			for (int i=0;i<24;i++) {
@@ -234,6 +235,7 @@ int main () {
 	double x2, y2, z2, vx2, vy2, vz2;
 	string first_orientation;
 	string second_orientation;
+	double f107A, f107, ap;
 	int differential_drag;
 	double k_i_drag, k_p_drag;
 	int propulsion;
@@ -244,7 +246,8 @@ int main () {
 		Cd >> A >> mass >> power >> solar_file >> drag_file >>
 		solar_efficiency >> two_satellites >> separation_target >>
 		x2 >> y2 >> z2 >> vx2 >> vy2 >> vz2 >> first_orientation >>
-		second_orientation >> differential_drag >> k_i_drag >> k_p_drag >>
+		second_orientation >> f107A >> f107 >> ap >>
+		differential_drag >> k_i_drag >> k_p_drag >>
 		propulsion >> k_i_prop >> k_p_prop;
 
 	StateVector x0;
@@ -290,6 +293,9 @@ int main () {
 	params.orientation_str = first_orientation;
 	params.solar_efficiency = solar_efficiency;
 	params.t0 = t0;
+	params.f107A = f107A;
+	params.f107 = f107;
+	params.ap = ap;
 	params.two_satellites = two_satellites;
 	params.i_am_leader = true;
 	params.separation_target = separation_target;
