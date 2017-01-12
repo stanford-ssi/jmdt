@@ -51,6 +51,9 @@ vz_0 = v_0 * math.cos(orbital_i)        # [m/s]
 # Specify desired separation velocity between satellites (set to 0 if not separating or using a single satellite)
 vseparation = 0.1 # [m/s]
 
+# Specify desired separation distance
+target_distance = 100000;
+
 vx_0_1 = vx_0 + ((vx_0/v_0) * vseparation/2)
 vy_0_1 = vy_0 + ((vy_0/v_0) * vseparation/2)
 vz_0_1 = vz_0 + ((vz_0/v_0) * vseparation/2)
@@ -115,7 +118,7 @@ def run_simulation(# Time step, in seconds.
                    two_satellites = 1,
 
                    # Separation target
-                   separation_target = 100000, # [m]
+                   separation_target = target_distance, # [m]
 
                    # Initial state of the second satellite.
                    second_state = [r_earth + altitude_0, 0, 0, vx_0_2, vy_0_2, vz_0_2],
@@ -212,6 +215,7 @@ dd2 = out[:, 18]
 fig2 = plt.figure(figsize = (10,12))
 ax_dis = plt.subplot(311)
 plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-')
+plt.plot(ts, np.ones(len(ts)) * target_distance/1000 , 'k--')
 plt.ylabel('Separation Distance (km)')
 plt.xlabel('Time (days)')
 
