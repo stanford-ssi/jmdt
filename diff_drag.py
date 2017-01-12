@@ -86,7 +86,7 @@ def run_simulation(# Time step, in seconds.
                    t0 = 2457467.50, # [days] - yes, it's dumb, but it's standard
 
                    # Final time (difference)
-                   tf = 60 * 86400, # [s]
+                   tf = 100 * 86400, # [s]
 
                    # Coefficient of drag.
                    Cd = 2,
@@ -136,7 +136,7 @@ def run_simulation(# Time step, in seconds.
     process = Popen(['./jmdt'], bufsize=-1,
                         stdout=PIPE, stderr=PIPE, stdin=PIPE)
 
-    output_size = 17
+    output_size = 21
     N = math.floor(tf/dt)/report_steps
     out = np.memmap('output.mmap', dtype=np.double,
                         mode='w+', shape=output_size*N)
@@ -176,6 +176,9 @@ xv2 = out[:, 12]
 yv2 = out[:, 13]
 zv2 = out[:, 14]
 
+dd = out[:, 17]
+dd2 = out[:, 18]
+
 #plt.plot(ts, power)
 
 fig1 = plt.figure()
@@ -201,8 +204,17 @@ plt.xlabel('Time (days)')
 #plt.show()
 
 fig2 = plt.figure()
-ax_BC = plt.subplot(111)
-plt.plot(ts, BC)
+ax_dis = plt.subplot(311)
+plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-')
+
+plt.xlabel('Time (days)')
+
+ax_dd = plt.subplot(312)
+plt.plot(ts, dd)
+
+ax_dd2 = plt.subplot(313)
+plt.plot(ts, dd2)
+
 plt.show()
 
 #fig = plt.figure()

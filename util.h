@@ -35,6 +35,8 @@ struct IntegratorParams {
 	StateVector* lover;
 	int i_am_leader;
 	int separation_target;
+	double distance_derivative;
+	double filter;
 	double doy;
 	double sec;
 
