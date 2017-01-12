@@ -54,10 +54,47 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 
 // Begin world's jankiest janktroller
 
-if(params->two_satellites == 1){
-	if(params->i_am_leader == 1){
+if((params->two_satellites == 1) && (params->lover != NULL)){
+	StateVector rtgtv = *(params->lover);
+	Vector3d rvec_other(rtgtv[0], rtgtv[1], rtgtv[2]);
+	Vector3d diff(rtgtv[0]-rvec[0], rtgtv[1]-rvec[1], rtgtv[2]-rvec[2]);
+	Vector3d vec_other(rtgtv[3], rtgtv[4], rtgtv[5]);
 
-	}
+	/*// See http://math.stackexchange.com/questions/1481701/time-derivative-of-the-distance-between-2-points-moving-over-time
+	Vector3d diff_vec(vec[0]-vec_other[0], vec[1]-vec_other[1], vec[2]-vec_other[2]);
+	Vector3d bearing(rvec[0]-rvec_other[0], rvec[1]-rvec_other[1], rvec[2]-rvec_other[2]);
+	bearing.normalize();
+	float dist_deriv(bearing[0]*diff_vec[0] + bearing[1]*diff_vec[1] + bearing[2]*diff_vec[2]);
+
+	if(diff.norm() < params->separation_target){
+		if(dist_deriv > 0){
+			if(params->i_am_leader == 1 ){
+				params->orientation_str = "r";
+			}else{
+				params->orientation_str = "n";
+			}
+		}else{
+			if(params->i_am_leader == 1 ){
+				params->orientation_str = "n";
+			}else{
+				params->orientation_str = "r";
+			}
+		}
+	}else{
+		if(dist_deriv > 0){
+			if(params->i_am_leader == 1 ){
+				params->orientation_str = "r";
+			}else{
+				params->orientation_str = "n";
+			}
+		}else{
+			if(params->i_am_leader == 1 ){
+				params->orientation_str = "n";
+			}else{
+				params->orientation_str = "r";
+			}
+		}
+	}*/
 }
 
 // End janktroller

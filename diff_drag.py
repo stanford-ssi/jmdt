@@ -18,7 +18,7 @@ import atexit
 r_earth = 6371009 # [m]
 
 # Initial altitude
-altitude_0 = 600 * 1000 # [m]
+altitude_0 = 550 * 1000 # [m]
 
 # TODO: Currently assumes orbit starts at periapsis
 # Periapsis
@@ -64,7 +64,7 @@ def run_simulation(# Time step, in seconds.
 
                    # Send data over to Python over this many integration steps,
                    # i.e. every report_steps*dt seconds.
-                   report_steps = 1,
+                   report_steps = 10,
 
                    # Atmospheric model. 0: None, 1: US1976, 2: NRLMSISE-00
                    # 0 is fastest, 1 is pretty fast (interpolated values),
@@ -86,7 +86,7 @@ def run_simulation(# Time step, in seconds.
                    t0 = 2457467.50, # [days] - yes, it's dumb, but it's standard
 
                    # Final time (difference)
-                   tf = 30 * 86400, # [s]
+                   tf = 60 * 86400, # [s]
 
                    # Coefficient of drag.
                    Cd = 2,
@@ -95,17 +95,17 @@ def run_simulation(# Time step, in seconds.
                    A = 0.1*(0.15+0.1+0.15),
 
                    # Mass of the satellite.
-                   mass = 2.0, # [kg]
+                   mass = 4.0, # [kg]
 
                    # Power simulation parameters. 0: No power simulation,
                    # 1: simulate power (solar panels).
                    power = 1,
 
                    # Solar panel model file, or "none" if not using one.
-                   solar = "ssisat-1/romeo.solar",
+                   solar = "ssisat-1/rev2.solar",
 
                    # Satellite area model file, or "none" if not using one.
-                   drag = "ssisat-1/romeo.drag",
+                   drag = "ssisat-1/rev2.drag",
 
                    # Efficiency of the solar panels.
                    solar_efficiency = 0.27,
@@ -198,8 +198,12 @@ ax_vel = plt.subplot(313)
 plt.plot(ts, np.sqrt(xv*xv + yv*yv + zv*zv))
 plt.ylabel('Satellite velocity (m/s)')
 plt.xlabel('Time (days)')
-plt.show()
+#plt.show()
 
+fig2 = plt.figure()
+ax_BC = plt.subplot(111)
+plt.plot(ts, BC)
+plt.show()
 
 #fig = plt.figure()
 #ax = fig.gca(projection='3d')
