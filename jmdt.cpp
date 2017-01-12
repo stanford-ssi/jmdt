@@ -234,14 +234,18 @@ int main () {
 	double x2, y2, z2, vx2, vy2, vz2;
 	string first_orientation;
 	string second_orientation;
-	double k_i, k_p;
+	int differential_drag;
+	double k_i_drag, k_p_drag;
+	int propulsion;
+	double k_i_prop, k_p_prop;
 
 	cin >> dt >> report_steps >> atmosphere >> earth >>
 		x >> y >> z >> vx >> vy >> vz >> t0 >> tf >> output_size >>
 		Cd >> A >> mass >> power >> solar_file >> drag_file >>
 		solar_efficiency >> two_satellites >> separation_target >>
 		x2 >> y2 >> z2 >> vx2 >> vy2 >> vz2 >> first_orientation >>
-		second_orientation >> k_i >> k_p;
+		second_orientation >> differential_drag >> k_i_drag >> k_p_drag >>
+		propulsion >> k_i_prop >> k_p_prop;
 
 	StateVector x0;
 	x0 << x, y, z, vx, vy, vz;
@@ -336,51 +340,51 @@ int main () {
 		}
 
 		// Begin world's jankiest janktroller
+		if(differential_drag){
+			if(params.two_satellites == 1){
+				Vector3d rvec_lead(integrator.x[0], integrator.x[1], integrator.x[2]);
+				Vector3d rvec_follow(second_integrator->x[0], second_integrator->x[1], second_integrator->x[2]);
+				Vector3d diff(rvec_lead[0]-rvec_follow[0], rvec_lead[1]-rvec_follow[1], rvec_lead[2]-rvec_follow[2]);
 
-		if(params.two_satellites == 1){
-			Vector3d rvec_lead(integrator.x[0], integrator.x[1], integrator.x[2]);
-			Vector3d rvec_follow(second_integrator->x[0], second_integrator->x[1], second_integrator->x[2]);
-			Vector3d diff(rvec_lead[0]-rvec_follow[0], rvec_lead[1]-rvec_follow[1], rvec_lead[2]-rvec_follow[2]);
+				Vector3d vec_lead(integrator.x[3], integrator.x[4], integrator.x[5]);
+				Vector3d vec_follow(second_integrator->x[3], second_integrator->x[4], second_integrator->x[5]);
+				Vector3d diff_vec(vec_lead[0]-vec_follow[0], vec_lead[1]-vec_follow[1], vec_lead[2]-vec_follow[2]);
 
-			Vector3d vec_lead(integrator.x[3], integrator.x[4], integrator.x[5]);
-			Vector3d vec_follow(second_integrator->x[3], second_integrator->x[4], second_integrator->x[5]);
-			Vector3d diff_vec(vec_lead[0]-vec_follow[0], vec_lead[1]-vec_follow[1], vec_lead[2]-vec_follow[2]);
+				// See http://math.stackexchange.com/questions/1481701/time-derivative-of-the-distance-between-2-points-moving-over-time
 
-			// See http://math.stackexchange.com/questions/1481701/time-derivative-of-the-distance-between-2-points-moving-over-time
+				Vector3d bearing(rvec_lead[0]-rvec_follow[0], rvec_lead[1]-rvec_follow[1], rvec_lead[2]-rvec_follow[2]);
+				bearing.normalize();
+				double dist_deriv = (bearing[0]*diff_vec[0] + bearing[1]*diff_vec[1] + bearing[2]*diff_vec[2]);
 
-			Vector3d bearing(rvec_lead[0]-rvec_follow[0], rvec_lead[1]-rvec_follow[1], rvec_lead[2]-rvec_follow[2]);
-			bearing.normalize();
-			double dist_deriv = (bearing[0]*diff_vec[0] + bearing[1]*diff_vec[1] + bearing[2]*diff_vec[2]);
+				// Low Pass Filtering
 
-			// Low Pass Filtering
+				dist_deriv_lpf.push(dist_deriv);
+				lpf_sum += dist_deriv;
 
-			dist_deriv_lpf.push(dist_deriv);
-			lpf_sum += dist_deriv;
+				if(dist_deriv_lpf.size() > lpf_max_samples){
+					lpf_sum -= dist_deriv_lpf.front();
+					dist_deriv_lpf.pop();
+				}
 
-			if(dist_deriv_lpf.size() > lpf_max_samples){
-				lpf_sum -= dist_deriv_lpf.front();
-				dist_deriv_lpf.pop();
+				double dist_deriv_filtered = lpf_sum / dist_deriv_lpf.size();
+
+				double err_i = diff.norm() - params.separation_target; // Integral error term
+				double err_p = dist_deriv_filtered; // Proportional error term, which is just velocity
+
+				double controller_response = (k_i_drag * err_i) + (k_p_drag * err_p);
+
+				if(controller_response < 0){
+					params.orientation_str = 'r';
+					second_params.orientation_str = 'n';
+				}else{
+					params.orientation_str = 'n';
+					second_params.orientation_str = 'r';
+				}
+
+				params.distance_derivative = dist_deriv;
+				second_params.distance_derivative = dist_deriv_filtered;
 			}
-
-			double dist_deriv_filtered = lpf_sum / dist_deriv_lpf.size();
-
-			double err_i = diff.norm() - params.separation_target; // Integral error term
-			double err_p = dist_deriv_filtered; // Proportional error term, which is just velocity
-
-			double controller_response = (k_i * err_i) + (k_p * err_p);
-
-			if(controller_response < 0){
-				params.orientation_str = 'r';
-				second_params.orientation_str = 'n';
-			}else{
-				params.orientation_str = 'n';
-				second_params.orientation_str = 'r';
-			}
-
-			params.distance_derivative = dist_deriv;
-			second_params.distance_derivative = dist_deriv_filtered;
 		}
-
 		// End janktroller
 
 

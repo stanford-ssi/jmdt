@@ -135,9 +135,20 @@ def run_simulation(# Time step, in seconds.
                    # Orientation mode for the second satellite.
                    second_orientation = "z",
 
-                   # Constants of PI controller
-                   k_i = -0.02,
-                   k_p = -7500.0
+                   # Enable differential drag
+                   differential_drag = 1,
+
+                   # Constants of differential drag PI controller
+                   k_i_drag = -0.02,
+                   k_p_drag = -7500.0,
+
+                   # TODO - implement propulsion
+                   # Enable propulsion
+                   propulsion = 0,
+
+                   # Constants of propulsion PI controller
+                   k_i_prop = 0.0,
+                   k_p_prop = 0.0
 
                    ):
     #initial = time.time()
@@ -154,7 +165,8 @@ def run_simulation(# Time step, in seconds.
                 solar_efficiency, two_satellites, separation_target])
     inp.extend(second_state)
     inp.extend([first_orientation, second_orientation])
-    inp.extend([k_i, k_p])
+    inp.extend([differential_drag, k_i_drag , k_p_drag])
+    inp.extend([propulsion, k_i_prop , k_p_prop])
     #print '\n'.join(map(str, inp))
     a,b=process.communicate(input='\n'.join(map(str, inp)))
     print a,b
