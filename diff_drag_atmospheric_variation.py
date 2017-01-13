@@ -191,7 +191,7 @@ def run_simulation(# Time step, in seconds.
     return out
 
 
-out = run_simulation()
+out = run_simulation(f107A = 150.0, f107 = 150.0, ap = 4.0)
 
 ts = out[:, 0]/86400.0
 xs = out[:, 1]
@@ -214,21 +214,11 @@ dd21 = out[:, 18]
 
 figX = plt.figure(figsize = (15,9))
 ax_dis = plt.subplot(111)
-avg_dens, = plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-', label = 'vSep = 0.1 m/s')
+avg_dens, = plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-', label = 'Typical Density')
 
-# Higher separation velocity
+# High solar flux, high magnetic activity
 
-vseparation = 0.5;
-
-vx_0_1 = vx_0 + ((vx_0/v_0) * vseparation/2)
-vy_0_1 = vy_0 + ((vy_0/v_0) * vseparation/2)
-vz_0_1 = vz_0 + ((vz_0/v_0) * vseparation/2)
-
-vx_0_2 = vx_0 - ((vx_0/v_0) * vseparation/2)
-vy_0_2 = vy_0 - ((vy_0/v_0) * vseparation/2)
-vz_0_2 = vz_0 - ((vz_0/v_0) * vseparation/2)
-
-out2 = run_simulation(state = [r_earth + altitude_0, 0, 0, vx_0_1, vy_0_1, vz_0_1], second_state = [r_earth + altitude_0, 0, 0, vx_0_2, vy_0_2, vz_0_2], k_i_drag = -0.15, k_p_drag = -45000.0)
+out2 = run_simulation(f107A = 300.0, f107 = 300.0, ap = 40.0, k_i_drag = -0.075, k_p_drag = -4100.0, threshold_drag = 500.0)
 
 ts12 = out2[:, 0]/86400.0
 xs12 = out2[:, 1]
@@ -249,21 +239,11 @@ zv22 = out2[:, 14]
 dd2 = out2[:, 17]
 dd22 = out2[:, 18]
 
-high_dens, = plt.plot(ts12, np.sqrt((xs12-xs22)**2 + (ys12-ys22)**2 + (zs12-zs22)**2)/1000.0 , 'b-', label = 'vSep = 0.5 m/s')
+high_dens, = plt.plot(ts12, np.sqrt((xs12-xs22)**2 + (ys12-ys22)**2 + (zs12-zs22)**2)/1000.0 , 'b-', label = 'High Density')
 
-# Lower separation velocity
+# Low solar flux, low magnetic activity
 
-vseparation = 0.05;
-
-vx_0_1 = vx_0 + ((vx_0/v_0) * vseparation/2)
-vy_0_1 = vy_0 + ((vy_0/v_0) * vseparation/2)
-vz_0_1 = vz_0 + ((vz_0/v_0) * vseparation/2)
-
-vx_0_2 = vx_0 - ((vx_0/v_0) * vseparation/2)
-vy_0_2 = vy_0 - ((vy_0/v_0) * vseparation/2)
-vz_0_2 = vz_0 - ((vz_0/v_0) * vseparation/2)
-
-out3 = run_simulation(state = [r_earth + altitude_0, 0, 0, vx_0_1, vy_0_1, vz_0_1], second_state = [r_earth + altitude_0, 0, 0, vx_0_2, vy_0_2, vz_0_2])
+out3 = run_simulation(f107A = 100.0, f107 = 100.0, ap = 4.0, k_i_drag = -0.025, k_p_drag = -5000.0, threshold_drag = 100.0)
 
 ts13 = out3[:, 0]/86400.0
 xs13 = out3[:, 1]
@@ -284,14 +264,14 @@ zv23 = out3[:, 14]
 dd3 = out3[:, 17]
 dd23 = out3[:, 18]
 
-low_dens, = plt.plot(ts13, np.sqrt((xs13-xs23)**2 + (ys13-ys23)**2 + (zs13-zs23)**2)/1000.0 , 'r-', label = 'vSep = 0.05 m/s')
+low_dens, = plt.plot(ts13, np.sqrt((xs13-xs23)**2 + (ys13-ys23)**2 + (zs13-zs23)**2)/1000.0 , 'r-', label = 'Low Density')
 
 plt.plot(ts, np.ones(len(ts)) * target_distance/1000 , 'k--')
 plt.ylabel('Separation Distance (km)')
 plt.xlabel('Time (days)')
 plt.legend(handles=[low_dens, avg_dens, high_dens], loc = 'lower right')
 plt.title('Differential Drag Performance in 500 x 500 km Sun Synchronous Orbit')
-plt.savefig('pi_controller_varied_vsep.png', bbox_inches='tight')
+plt.savefig('pi_controller_space_weather_months.png', bbox_inches='tight')
 plt.show()
 
 #plt.plot(ts, power)
