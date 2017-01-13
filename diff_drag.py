@@ -18,7 +18,7 @@ import atexit
 r_earth = 6371009 # [m]
 
 # Initial altitude
-altitude_0 = 520 * 1000 # [m]
+altitude_0 = 500 * 1000 # [m]
 
 # TODO: Currently assumes orbit starts at periapsis
 # Periapsis
@@ -26,7 +26,7 @@ r_peri = altitude_0 + r_earth
 
 # TODO: Currently assumes orbit starts at periapsis
 # Orbital elements
-orbital_e = 0.001                                                 # Eccentricity [unitless]
+orbital_e = 0.000                                                 # Eccentricity [unitless]
 orbital_i = 98.0                                                    # Inclination [deg]
 orbital_a = r_peri * (1 + ((1 + orbital_e)/(1 - orbital_e)))/2.0    # Semi-major axis [m]
 #orbital_Omega                                                      # unimplemented
@@ -146,8 +146,9 @@ def run_simulation(# Time step, in seconds.
                    differential_drag = 1,
 
                    # Constants of differential drag PI controller
-                   k_i_drag = -0.02,
+                   k_i_drag = -0.11,
                    k_p_drag = -10000.0,
+                   threshold_drag = 200.0,
 
                    # TODO - implement propulsion
                    # Enable propulsion
@@ -155,7 +156,9 @@ def run_simulation(# Time step, in seconds.
 
                    # Constants of propulsion PI controller
                    k_i_prop = 0.0,
-                   k_p_prop = 0.0
+                   k_p_prop = 0.0,
+                   threshold_prop = 0.0
+
 
                    ):
     #initial = time.time()
@@ -173,8 +176,8 @@ def run_simulation(# Time step, in seconds.
     inp.extend(second_state)
     inp.extend([first_orientation, second_orientation])
     inp.extend([f107A, f107 , ap])
-    inp.extend([differential_drag, k_i_drag , k_p_drag])
-    inp.extend([propulsion, k_i_prop , k_p_prop])
+    inp.extend([differential_drag, k_i_drag , k_p_drag, threshold_drag])
+    inp.extend([propulsion, k_i_prop , k_p_prop, threshold_prop])
     #print '\n'.join(map(str, inp))
     a,b=process.communicate(input='\n'.join(map(str, inp)))
     print a,b
@@ -215,7 +218,7 @@ avg_dens, = plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0
 
 # High solar flux, high magnetic activity
 
-out2 = run_simulation(f107A = 300.0, f107 = 300.0, ap = 40.0)
+out2 = run_simulation(f107A = 300.0, f107 = 300.0, ap = 40.0, k_i_drag = -0.15, k_p_drag = -40000.0, threshold_drag = 2500.0,)
 
 ts12 = out2[:, 0]/86400.0
 xs12 = out2[:, 1]
@@ -267,7 +270,7 @@ plt.plot(ts, np.ones(len(ts)) * target_distance/1000 , 'k--')
 plt.ylabel('Separation Distance (km)')
 plt.xlabel('Time (days)')
 plt.legend(handles=[low_dens, avg_dens, high_dens], loc = 'lower right')
-plt.title('Differential Drag Performance in 520 x 560 km Sun Synchronous Orbit')
+plt.title('Differential Drag Performance in 500 x 500 km Sun Synchronous Orbit')
 plt.savefig('pi_controller_space_weather.png', bbox_inches='tight')
 plt.show()
 

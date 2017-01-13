@@ -36,7 +36,7 @@ struct IntegratorParams {
 
 	int i_am_leader; // Unused
 	int separation_target;
-	double distance_derivative; // No longer used for what it was created for
+	int controller_behavior;
 
 	double f107A;
 	double f107;

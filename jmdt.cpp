@@ -238,8 +238,10 @@ int main () {
 	double f107A, f107, ap;
 	int differential_drag;
 	double k_i_drag, k_p_drag;
+	double threshold_drag;
 	int propulsion;
 	double k_i_prop, k_p_prop;
+	double threshold_prop;
 
 	cin >> dt >> report_steps >> atmosphere >> earth >>
 		x >> y >> z >> vx >> vy >> vz >> t0 >> tf >> output_size >>
@@ -247,8 +249,8 @@ int main () {
 		solar_efficiency >> two_satellites >> separation_target >>
 		x2 >> y2 >> z2 >> vx2 >> vy2 >> vz2 >> first_orientation >>
 		second_orientation >> f107A >> f107 >> ap >>
-		differential_drag >> k_i_drag >> k_p_drag >>
-		propulsion >> k_i_prop >> k_p_prop;
+		differential_drag >> k_i_drag >> k_p_drag >> threshold_drag >>
+		propulsion >> k_i_prop >> k_p_prop >> threshold_prop;
 
 	StateVector x0;
 	x0 << x, y, z, vx, vy, vz;
@@ -299,7 +301,7 @@ int main () {
 	params.two_satellites = two_satellites;
 	params.i_am_leader = true;
 	params.separation_target = separation_target;
-	params.distance_derivative = 0.0;
+	params.controller_behavior = 0;
 	params.lover = NULL;
 	params.filter = 0.0;
 
@@ -379,16 +381,22 @@ int main () {
 
 				double controller_response = (k_i_drag * err_i) + (k_p_drag * err_p);
 
-				if(controller_response < 0){
+				if(controller_response < -threshold_drag){
 					params.orientation_str = 'r';
 					second_params.orientation_str = 'n';
-				}else{
+					params.controller_behavior = 1;
+					second_params.controller_behavior = 0;
+				}else if(controller_response > threshold_drag){
 					params.orientation_str = 'n';
 					second_params.orientation_str = 'r';
+					params.controller_behavior = 0;
+					second_params.controller_behavior = 1;
+				}else{
+					params.orientation_str = 'n';
+					second_params.orientation_str = 'n';
+					params.controller_behavior = 0;
+					second_params.controller_behavior = 0;
 				}
-
-				params.distance_derivative = dist_deriv;
-				second_params.distance_derivative = dist_deriv_filtered;
 			}
 		}
 		// End janktroller
@@ -416,8 +424,8 @@ int main () {
 				output[arg0+15] = second_params.output_power;
 				output[arg0+16] = second_params.output_BC;
 			}
-			output[arg0+17] = params.distance_derivative;
-			output[arg0+18] = second_params.distance_derivative;
+			output[arg0+17] = params.controller_behavior;
+			output[arg0+18] = second_params.controller_behavior;
 			output[arg0+19] = params.filter;
 			output[arg0+20] = second_params.filter;
 		}
