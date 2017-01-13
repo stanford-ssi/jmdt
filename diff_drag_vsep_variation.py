@@ -33,8 +33,6 @@ orbital_a = r_peri * (1 + ((1 + orbital_e)/(1 - orbital_e)))/2.0    # Semi-major
 #orbital_omega                                                      # unimplemented
 #orbital_nu                                                         # unimplemented
 
-print(orbital_a)
-
 # Gravitational constant
 mu_earth = 398600441500000.0 # [m^3/s^2] - definitely not that exact to that many decimals, but converted from km to m
 
@@ -64,12 +62,18 @@ vx_0_2 = vx_0 - ((vx_0/v_0) * vseparation/2)
 vy_0_2 = vy_0 - ((vy_0/v_0) * vseparation/2)
 vz_0_2 = vz_0 - ((vz_0/v_0) * vseparation/2)
 
+# Simulation timestep
+timestep = 10
+
+# Simulation timesteps between reportings
+num_report_steps = 1
+
 def run_simulation(# Time step, in seconds.
-                   dt = 10,
+                   dt = timestep,
 
                    # Send data over to Python over this many integration steps,
                    # i.e. every report_steps*dt seconds.
-                   report_steps = 10,
+                   report_steps = num_report_steps,
 
                    # Atmospheric model. 0: None, 1: US1976, 2: NRLMSISE-00
                    # 0 is fastest, 1 is pretty fast (interpolated values),
@@ -214,7 +218,10 @@ dd21 = out[:, 18]
 
 figX = plt.figure(figsize = (15,9))
 ax_dis = plt.subplot(111)
+
+plt.plot(ts, (dd+dd21)*95, 'g--')
 avg_dens, = plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-', label = 'vSep = 0.1 m/s')
+
 
 # Higher separation velocity
 
@@ -284,6 +291,7 @@ zv23 = out3[:, 14]
 dd3 = out3[:, 17]
 dd23 = out3[:, 18]
 
+plt.plot(ts, (dd3+dd23)*96, 'r--')
 low_dens, = plt.plot(ts13, np.sqrt((xs13-xs23)**2 + (ys13-ys23)**2 + (zs13-zs23)**2)/1000.0 , 'r-', label = 'vSep = 0.05 m/s')
 
 plt.plot(ts, np.ones(len(ts)) * target_distance/1000 , 'k--')
@@ -291,7 +299,7 @@ plt.ylabel('Separation Distance (km)')
 plt.xlabel('Time (days)')
 plt.legend(handles=[low_dens, avg_dens, high_dens], loc = 'lower right')
 plt.title('Differential Drag Performance in 500 x 500 km Sun Synchronous Orbit')
-plt.savefig('pi_controller_varied_vsep.png', bbox_inches='tight')
+plt.savefig('pi_controller_varied_vsep_detailed.png', bbox_inches='tight')
 plt.show()
 
 #plt.plot(ts, power)
