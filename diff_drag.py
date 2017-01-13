@@ -190,41 +190,41 @@ dd2 = out[:, 18]
 
 #plt.plot(ts, power)
 
-# fig1 = plt.figure()
-#
+fig1 = plt.figure(figsize = (8,6))
+
 # # Separation distance plot
 # ax_pos = plt.subplot(311)
+#
 # plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-')
 # plt.ylabel('Separation distance (km)')
 # plt.xlabel('Time (days)')
 # plt.savefig('diff_drag.png', bbox_inches='tight')
-#
-# # Altitude plot
-# ax_pos = plt.subplot(312)
-# plt.plot(ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'r-', ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'b-')
-# plt.ylabel('Satellite altitude (km)')
-# plt.xlabel('Time (days)')
-#
-# # Velocity plot
-# ax_vel = plt.subplot(313)
-# plt.plot(ts, np.sqrt(xv*xv + yv*yv + zv*zv))
-# plt.ylabel('Satellite velocity (m/s)')
-# plt.xlabel('Time (days)')
-#plt.show()
 
-fig2 = plt.figure(figsize = (10,12))
-ax_dis = plt.subplot(311)
+# Altitude plot
+ax_pos = plt.subplot(211)
+plt.title('Differential Drag Performance in 600 x 600 km 28-degree Orbit')
+plt.plot(ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'r-', ts, np.sqrt(xs*xs + ys*ys + zs*zs)/1000.0 - 6371.009, 'b-')
+plt.ylabel('Satellite altitude (km)')
+
+# Velocity plot
+ax_vel = plt.subplot(212)
+plt.plot(ts, np.sqrt(xv*xv + yv*yv + zv*zv))
+plt.ylabel('Satellite velocity (m/s)')
+plt.xlabel('Time (days)')
+plt.savefig('diff_drag.png', bbox_inches='tight')
+
+fig2 = plt.figure(figsize = (8,6))
+ax_dis = plt.subplot(211)
+plt.title('Differential Drag Performance in 600 x 600 km 28-degree Orbit')
 plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0 , 'g-')
 plt.plot(ts, np.ones(len(ts)) * target_distance/1000 , 'k--')
 plt.ylabel('Separation Distance (km)')
-plt.xlabel('Time (days)')
 
-ax_dd = plt.subplot(312)
-plt.plot(ts, dd)
-plt.ylabel('Drift Velocity (m/s)')
-plt.xlabel('Time (days)')
+# ax_dd = plt.subplot(312)
+# plt.plot(ts, dd)
+# plt.ylabel('Drift Velocity (m/s)')
 
-ax_dd2 = plt.subplot(313)
+ax_dd2 = plt.subplot(212)
 plt.plot(ts, dd2)
 plt.ylabel('Filtered Drift Velocity (m/s)')
 plt.xlabel('Time (days)')
