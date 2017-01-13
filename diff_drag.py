@@ -218,7 +218,7 @@ avg_dens, = plt.plot(ts, np.sqrt((xs-xs2)**2 + (ys-ys2)**2 + (zs-zs2)**2)/1000.0
 
 # High solar flux, high magnetic activity
 
-out2 = run_simulation(f107A = 300.0, f107 = 300.0, ap = 40.0, k_i_drag = -0.15, k_p_drag = -40000.0, threshold_drag = 2500.0,)
+out2 = run_simulation(f107A = 300.0, f107 = 300.0, ap = 40.0, k_i_drag = -0.075, k_p_drag = -4100.0, threshold_drag = 500.0)
 
 ts12 = out2[:, 0]/86400.0
 xs12 = out2[:, 1]
@@ -243,7 +243,7 @@ high_dens, = plt.plot(ts12, np.sqrt((xs12-xs22)**2 + (ys12-ys22)**2 + (zs12-zs22
 
 # Low solar flux, low magnetic activity
 
-out3 = run_simulation(f107A = 100.0, f107 = 100.0, ap = 4.0)
+out3 = run_simulation(f107A = 100.0, f107 = 100.0, ap = 4.0, k_i_drag = -0.025, k_p_drag = -5000.0, threshold_drag = 100.0)
 
 ts13 = out3[:, 0]/86400.0
 xs13 = out3[:, 1]
