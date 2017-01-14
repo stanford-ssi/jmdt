@@ -20,18 +20,17 @@ r_earth = 6371009 # [m]
 # Initial altitude
 altitude_0 = 500 * 1000 # [m]
 
-# TODO: Currently assumes orbit starts at periapsis
 # Periapsis
 r_peri = altitude_0 + r_earth
 
 # TODO: Currently assumes orbit starts at periapsis
 # Orbital elements
-orbital_e = 0.000                                                 # Eccentricity [unitless]
-orbital_i = 98.0                                                    # Inclination [deg]
+orbital_e = 0.000                                                   # Eccentricity [unitless]
+orbital_i = 98.0 * math.pi / 180                                    # Inclination [rad]
 orbital_a = r_peri * (1 + ((1 + orbital_e)/(1 - orbital_e)))/2.0    # Semi-major axis [m]
-#orbital_Omega                                                      # unimplemented
-#orbital_omega                                                      # unimplemented
-#orbital_nu                                                         # unimplemented
+orbital_Omega = 0.0 * math.pi / 180                                 # unimplemented
+orbital_omega = 0.0 * math.pi / 180                                 # unimplemented
+orbital_nu_0 = 0.0 * math.pi / 180                                  # True anomaly [rad]
 
 print(orbital_a)
 
@@ -42,13 +41,22 @@ mu_earth = 398600441500000.0 # [m^3/s^2] - definitely not that exact to that man
 v_0 = (mu_earth * ((2.0/r_peri)-(1.0/orbital_a))) ** 0.5    # [m/s]
 
 # TODO: Currently assumes orbit starts at periapsis and that periapsis occurs when x = 0
-# Define three components of initial velocity
-vx_0 = 0.0                              # [m/s]
-vy_0 = v_0 * math.sin(orbital_i)        # [m/s]
-vz_0 = v_0 * math.cos(orbital_i)        # [m/s]
 
-# Calculate initial velocity magnitude
-# v_0 = np.sqrt(vx_0**2 + vy_0**2 + vz_0**2)
+# Define three components of initial position
+rx_0_1 = r_peri
+ry_0_1 = 0.0
+rz_0_1 = 0.0
+
+rx_0_2 = r_peri
+ry_0_2 = 0.0
+rz_0_2 = 0.0
+
+# Define three components of initial velocity
+vx_0 = 0.0                                          # [m/s]
+vy_0 = v_0 * math.sin(orbital_i)  # [m/s]
+vz_0 = v_0 * math.cos(orbital_i)  # [m/s]
+
+
 
 # Specify desired separation velocity between satellites (set to 0 if not separating or using a single satellite)
 vseparation = 0.1 # [m/s]
@@ -85,7 +93,7 @@ def run_simulation(# Time step, in seconds.
 
                    # TODO: Currently assumes orbit starts at periapsis and that periapsis occurs when x = 0
                    # Initial state vector: (x, y, z, vx, vy, vz).
-                   state = [r_peri, 0, 0, vx_0_1, vy_0_1, vz_0_1],
+                   state = [rx_0_1, ry_0_1, rz_0_1, vx_0_1, vy_0_1, vz_0_1],
 
                    # Initial Julian date (sorry).
                    t0 = 2457467.50, # [days] - yes, it's dumb, but it's standard
@@ -123,7 +131,7 @@ def run_simulation(# Time step, in seconds.
                    separation_target = target_distance, # [m]
 
                    # Initial state of the second satellite.
-                   second_state = [r_earth + altitude_0, 0, 0, vx_0_2, vy_0_2, vz_0_2],
+                   second_state = [rx_0_2, ry_0_2, rz_0_2, vx_0_2, vy_0_2, vz_0_2],
 
                    # Orientation mode for the first satellite.
                    # t: Target (i.e. the other satellite)
