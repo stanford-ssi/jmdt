@@ -1,0 +1,2 @@
+all:
+	g++ -march=native -Ofast -I. -Igravity_lib/include nrlmsise-00/nrlmsise-00.cpp nrlmsise-00/nrlmsise-00_data.c integrator.cpp atmosphere.cpp properties.cpp util.cpp jmdt.cpp -lgsl -lgslcblas -lm -Lgravity_lib/lib -lGeographic -o jmdt

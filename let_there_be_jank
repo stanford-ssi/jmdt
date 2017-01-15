@@ -1,0 +1,64 @@
+git checkout Makefile
+rm -rf install_corn
+mkdir install_corn
+
+function prnt() {
+echo -e "\033[31m$1\e[0m"
+}
+
+prnt "Now the earth was formless and empty,"
+prnt "darkness was over the surface of the deep,"
+prnt "and the Spirit of God was hovering over the waters."
+echo
+prnt "And God said, \"Let there be jank\""
+echo
+function prnt() {
+echo -e "\033[34m$1\e[0m"
+}
+
+prnt "And then he realized that he kinda had to do sketchy things"
+prnt "First he tried to install a bunch of easy Python requirements"
+pip install -r requirements.txt
+prnt "And he succeded."
+echo
+echo
+prnt "Then he went on to install Eigen, a matrix library"
+cd install_corn
+wget http://bitbucket.org/eigen/eigen/get/3.3.1.tar.gz
+prnt "Wow, unzipping this file takes forever. Sorry about that."
+tar -xzf 3.3.1.tar.gz
+cd eigen*
+cp -r Eigen ../../
+cd ../..
+cp Makefile.corn Makefile
+
+prnt "Moving on to the library used for gravitational data"
+cd install_corn
+wget "https://downloads.sourceforge.net/project/geographiclib/distrib/GeographicLib-1.46.tar.gz"
+tar -xzf GeographicLib-1.46.tar.gz
+cd GeographicLib-1.46
+prnt "Editing paths because why not"
+sed -i 's#/usr/local/share/GeographicLib#'$HOME'/jmdt/gravity_data#g' CMakeLists.txt
+prnt "Compiling, jesus take the wheel"
+cmake -D CMAKE_INSTALL_PREFIX=$HOME/jmdt/gravity_lib .
+make
+make install
+cd ..
+cd ..
+
+prnt "Doing more jank things to paths"
+if grep -q -i jmdt ~/.bashrc;
+then prnt " ... wow you've tried this before, ok.";
+else echo 'export LD_LIBRARY_PATH=$HOME/jmdt/gravity_lib/lib${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH:-}' >> ~/.bashrc; fi;
+
+prnt "Installing gravity data..."
+gravity_lib/sbin/geographiclib-get-gravity -p gravity_data wgs84
+
+echo
+echo
+echo
+echo -e "\033[1;32mAnd then there was light\033[0m"
+
+echo
+echo
+echo "Try running 'make' and then some of the Python scripts."
