@@ -59,7 +59,7 @@ source ~/.bashrc
 echo
 echo
 echo
-echo -e "\033[1;32mAnd then there was light\033[0m"
+echo -e "\033[1;32mAnd then there was jank\033[0m"
 
 echo
 echo
