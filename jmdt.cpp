@@ -36,6 +36,8 @@ typedef Matrix<double, 13, 1> StateVector;
 		[11] = Satellite frame y axis angular velocity [rad/s]
 		[12] = Satellite frame z axis angular velocity [rad/s]
 
+		x[6] - x[9] must be a normalized quaternion to ensure proper behavior!
+
 		See:
 			S. D'Amico's AA279A notes in SSI Google Drive - ECEF discussed in Lecture 5
 			https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
@@ -81,8 +83,11 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 		out[5] = factor * x[2];
 	}
 
+	// Velocity vector
 	Vector3d vec(x[3], x[4], x[5]);
 
+
+	// Idealized orientation
 	if (params->drag != 0 || params->power != 0) {
 		if ((params->orientation_str[0] == 'c') && (params->lover != NULL)) {
 			StateVector rtgtv = *(params->lover);
@@ -108,6 +113,12 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 			params->orientation = rsun;
 		}
 	}
+
+	// Quaternion orientation
+	Quaternion<double> orientation = Quaternion<double>(x[6], x[7], x[8], x[9]);
+	Quaternion<double> rotation_sat_x = Quaternion<double>(x[6], x[7], x[8], x[10]);
+
+	Quaternion<double> full_rotation = orientation*rotation_sat_x;
 
 	Matrix<double, 3, 3> R;
 	if ((params->atmosphere != 0 && params->drag != 0) ||
