@@ -174,7 +174,7 @@ def run_simulation(# Time step, in seconds.
                         stdout=PIPE, stderr=PIPE, stdin=PIPE)
 
     output_size = 21
-    N = math.floor(tf/dt)/report_steps
+    N = int(math.floor(tf/dt)/report_steps)
     out = np.memmap('output.mmap', dtype=np.double,
                         mode='w+', shape=output_size*N)
     inp = [dt, report_steps, atmosphere, earth]
