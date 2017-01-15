@@ -117,6 +117,8 @@ StateVector func(StateVector x, double t, IntegratorParams* params) {
 	// Quaternion orientation
 	Quaternion<double> orientation = Quaternion<double>(x[6], x[7], x[8], x[9]);
 	Quaternion<double> rotation_sat_x = Quaternion<double>(x[6], x[7], x[8], x[10]);
+	Quaternion<double> rotation_sat_y = Quaternion<double>(x[6], x[7], x[8], x[11]);
+	Quaternion<double> rotation_sat_z = Quaternion<double>(x[6], x[7], x[8], x[12]);
 
 	Quaternion<double> full_rotation = orientation*rotation_sat_x;
 
