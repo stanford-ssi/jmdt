@@ -54,6 +54,9 @@ else echo 'export LD_LIBRARY_PATH=$HOME/jmdt/gravity_lib/lib${LD_LIBRARY_PATH:+:
 prnt "Installing gravity data..."
 gravity_lib/sbin/geographiclib-get-gravity -p gravity_data wgs84
 
+prnt "Updating matplotlib, because corn"
+pip install --user --upgrade matplotlib
+
 source ~/.bashrc
 
 echo
