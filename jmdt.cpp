@@ -37,7 +37,7 @@ typedef Matrix<double, 13, 1> StateVector;
 		[12] = Satellite frame z axis angular velocity [rad/s]
 
 		See:
-			AA279A notes in SSI Google Drive - ECEF discussed in Lecture 5
+			S. D'Amico's AA279A notes in SSI Google Drive - ECEF discussed in Lecture 5
 			https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
 			https://en.wikipedia.org/wiki/Quaternion
 			http://run.usc.edu/cs520-s14/quaternions/quaternions-cs520.pdf
@@ -45,6 +45,15 @@ typedef Matrix<double, 13, 1> StateVector;
 
 StateVector func(StateVector x, double t, IntegratorParams* params) {
 	StateVector out;
+
+	/* TEMPORARY */
+	out[6] = 0.0;
+	out[7] = 0.0;
+	out[8] = 0.0;
+	out[9] = 0.0;
+	out[10] = 0.0;
+	out[11] = 0.0;
+	out[12] = 0.0;
 
 	/* Velocity. */
 	out[0] = x[3];
@@ -274,10 +283,10 @@ int main () {
 		propulsion >> k_i_prop >> k_p_prop >> threshold_prop;
 
 	StateVector x0;
-	x0 << x, y, z, vx, vy, vz;
+	x0 << x, y, z, vx, vy, vz, 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0;
 
 	StateVector second_x0;
-	second_x0 << x2, y2, z2, vx2, vy2, vz2;
+	second_x0 << x2, y2, z2, vx2, vy2, vz2 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0;
 
 	/* Well, that was quite stupid. So at first I was like, oh, I want to
 	 * communicate with Python! I have the power of Unix, I'll use pipes
