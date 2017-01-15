@@ -54,6 +54,8 @@ else echo 'export LD_LIBRARY_PATH=$HOME/jmdt/gravity_lib/lib${LD_LIBRARY_PATH:+:
 prnt "Installing gravity data..."
 gravity_lib/sbin/geographiclib-get-gravity -p gravity_data wgs84
 
+source ~/.bashrc
+
 echo
 echo
 echo
