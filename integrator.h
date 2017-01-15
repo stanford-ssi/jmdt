@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-typedef Eigen::Matrix<double, 6, 1> StateVector;
+typedef Eigen::Matrix<double, 13, 1> StateVector;
 
 class ABMIntegrator {
 	public:

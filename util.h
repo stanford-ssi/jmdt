@@ -15,7 +15,7 @@ const double SOLAR_CONSTANT = 1360.8;
 
 const double DEG2RAD = M_PI/180.0;
 
-typedef Eigen::Matrix<double, 6, 1> StateVector;
+typedef Eigen::Matrix<double, 13, 1> StateVector;
 
 struct IntegratorParams {
 	int earth;

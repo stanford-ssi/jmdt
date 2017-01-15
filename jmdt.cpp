@@ -20,7 +20,28 @@ using namespace std;
 using namespace Eigen;
 using namespace GeographicLib;
 
-typedef Matrix<double, 6, 1> StateVector;
+typedef Matrix<double, 13, 1> StateVector;
+
+/* 	[0] = x position in ECEF frame [m]
+		[1] = y position in ECEF frame [m]
+		[2] = z position in ECEF frame [m]
+		[3] = x velocity in ECEF frame [m/s]
+		[4] = y velocity in ECEF frame [m/s]
+		[5] = z velocity in ECEF frame [m/s]
+		[6] = Quaternion rotation angle [rad]
+		[7] = Quaternion vector x component [unitless]
+		[8] = Quaternion vector y component [unitless]
+		[9] = Quaternion vector z component [unitless]
+		[10] = Satellite frame x axis angular velocity [rad/s]
+		[11] = Satellite frame y axis angular velocity [rad/s]
+		[12] = Satellite frame z axis angular velocity [rad/s]
+
+		See:
+			AA279A notes in SSI Google Drive - ECEF discussed in Lecture 5
+			https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
+			https://en.wikipedia.org/wiki/Quaternion
+			http://run.usc.edu/cs520-s14/quaternions/quaternions-cs520.pdf
+*/
 
 StateVector func(StateVector x, double t, IntegratorParams* params) {
 	StateVector out;

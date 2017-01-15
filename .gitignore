@@ -3,3 +3,4 @@
 *.o
 jmdt
 util.h.gch
+*.gch
